@@ -1,15 +1,23 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
-# Importe sua biblioteca do Gemini e configure aqui conforme seu código atual
+from google import genai
+from google.genai import types
 
 app = Flask(__name__)
 CORS(app)
 
+# Configura a API do Google GenAI com a chave de ambiente configurada no Render
+api_key = os.environ.get("GEMINI_API_KEY")
+client = genai.Client(api_key=api_key)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/api/analisar', methods=['POST'])
 def analisar():
     try:
-        # Verifica se o arquivo foi enviado na requisição
         if 'file' not in request.files:
             return jsonify({'error': 'Nenhum arquivo foi enviado'}), 400
         
@@ -18,19 +26,29 @@ def analisar():
         if file.filename == '':
             return jsonify({'error': 'Nome de arquivo inválido'}), 400
 
-        # Aqui você lê o arquivo binário ou salva temporariamente para enviar ao Gemini
         file_bytes = file.read()
+        mime_type = file.content_type or 'application/pdf'
 
-        # TODO: Adicione aqui a lógica de envio do arquivo para a API do Gemini
-        # Exemplo simulado de resposta de sucesso:
-        
+        # Chamada para a API do Gemini processar o documento enviado
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=[
+                types.Part.from_bytes(
+                    data=file_bytes,
+                    mime_type=mime_type,
+                ),
+                'Analise este documento. Faça uma classificação do tipo de documento e extraia as principais informações em tópicos claros (Resumo, Dados Principais, Valores/Prazos se houver).'
+            ]
+        )
+
         return jsonify({
             'status': 'sucesso',
-            'mensagem': 'Documento analisado com sucesso!',
+            'resultado': response.text,
             'nome_arquivo': file.filename
         }), 200
 
     except Exception as e:
+        print(f"Erro no servidor: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
