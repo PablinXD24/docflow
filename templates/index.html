@@ -1,62 +1,136 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocFlow - Análise de Documentos</title>
-    <!-- Tailwind CSS para estilização -->
+    <title>DocFlow IA - Análise de Documentos</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-slate-950 text-slate-100 h-full flex flex-col justify-between antialiased selection:bg-blue-500 selection:text-white">
 
-    <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-xl w-full max-w-xl">
-        <h1 class="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-            DocFlow IA
-        </h1>
-        <p class="text-slate-400 text-sm text-center mb-6">
-            Envie um documento PDF para classificação e extração automática de informações.
-        </p>
-        
-        <div class="mb-6">
-            <label class="block text-sm font-medium text-slate-300 mb-2">Selecione o arquivo:</label>
-            <input type="file" id="arquivoPdf" accept=".pdf,.doc,.docx,.txt,.png,.jpg" 
-                class="w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer bg-slate-900/50 border border-slate-700 rounded-xl p-2 transition"/>
+    <!-- Cabeçalho Minimalista -->
+    <header class="w-full max-w-4xl mx-auto p-6 flex items-center justify-between border-b border-slate-800/60">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
+                D
+            </div>
+            <span class="font-semibold tracking-wide text-lg bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">DocFlow IA</span>
+        </div>
+        <span class="text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400">Gemini Flash Ativo</span>
+    </header>
+
+    <!-- Área Principal de Resposta (Pop-up abaixo da barra) -->
+    <main class="w-full max-w-3xl mx-auto px-4 flex-1 flex flex-col justify-center py-8">
+        <div id="containerResultado" class="hidden w-full bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 backdrop-blur-md transition-all duration-300">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <h3 id="nomeArquivoExibicao" class="text-sm font-medium text-slate-300 truncate max-w-md">Análise Concluída</h3>
+                </div>
+                <button onclick="limparResultado()" class="text-xs text-slate-500 hover:text-slate-300 transition">Fechar</button>
+            </div>
+            <div id="resultado" class="text-slate-200 text-sm leading-relaxed overflow-y-auto max-h-[400px] whitespace-pre-wrap"></div>
         </div>
 
-        <button onclick="processarDocumento()" id="btnProcessar"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-semibold transition shadow-lg flex items-center justify-center">
-            Analisar Documento
-        </button>
+        <!-- Estado Inicial Vazio -->
+        <div id="estadoVazio" class="text-center py-12">
+            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">
+                Como posso ajudar a analisar seu documento?
+            </h1>
+            <p class="text-slate-400 text-sm max-w-md mx-auto">
+                Anexe um arquivo abaixo para classificar e extrair as principais informações instantaneamente com Inteligência Artificial.
+            </p>
+        </div>
+    </main>
 
-        <div class="mt-8">
-            <h2 class="text-lg font-semibold text-slate-300 mb-2">Resultado da Análise:</h2>
-            <div id="resultado" class="w-full min-h-[150px] bg-slate-900/80 border border-slate-700 rounded-xl p-4 text-slate-300 text-sm overflow-y-auto whitespace-pre-wrap hidden">
-                Aguardando o envio do documento...
+    <!-- Barra de Input Estilo Prompt (Fixa na Base) -->
+    <footer class="w-full max-w-3xl mx-auto p-4 mb-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-2.5 shadow-2xl shadow-black/50 focus-within:border-blue-500/60 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+            
+            <!-- Nome do arquivo selecionado (se houver) -->
+            <div id="fileInfo" class="hidden px-3 py-1 mb-2 text-xs text-blue-400 bg-blue-500/10 rounded-lg flex items-center justify-between">
+                <span id="fileName" class="truncate"></span>
+                <button type="button" onclick="removerArquivo()" class="text-slate-400 hover:text-white ml-2">✕</button>
+            </div>
+
+            <div class="flex items-center justify-between gap-2">
+                <!-- Botão de Anexo (Customizado) -->
+                <label class="cursor-pointer p-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                    </svg>
+                    <input type="file" id="arquivoPdf" accept=".pdf,.doc,.docx,.txt,.png,.jpg" class="hidden" onchange="atualizarNomeArquivo()" />
+                </label>
+
+                <!-- Campo de Texto / Placeholder descritivo -->
+                <div class="flex-1 px-2 text-sm text-slate-400 select-none">
+                    <span id="promptPlaceholder">Anexar documento para iniciar a análise...</span>
+                </div>
+
+                <!-- Botão de Envio Estilo IA -->
+                <button onclick="processarDocumento()" id="btnProcessar" disabled
+                    class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 text-white p-2.5 rounded-xl transition-all duration-200 flex items-center justify-center shadow-md">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
+                    </svg>
+                </button>
             </div>
         </div>
-    </div>
+        <p class="text-center text-[11px] text-slate-600 mt-3">O DocFlow IA pode cometer erros. Verifique informações críticas.</p>
+    </footer>
 
+    <!-- Script de Interação -->
     <script>
-        async function processarDocumento() {
-            const inputArquivo = document.getElementById('arquivoPdf');
-            const resultadoDiv = document.getElementById('resultado');
-            const btnProcessar = document.getElementById('btnProcessar');
+        const inputArquivo = document.getElementById('arquivoPdf');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const promptPlaceholder = document.getElementById('promptPlaceholder');
+        const btnProcessar = document.getElementById('btnProcessar');
+        const containerResultado = document.getElementById('containerResultado');
+        const estadoVazio = document.getElementById('estadoVazio');
+        const resultadoDiv = document.getElementById('resultado');
+        const nomeArquivoExibicao = document.getElementById('nomeArquivoExibicao');
 
-            if (inputArquivo.files.length === 0) {
-                alert('Por favor, selecione um arquivo primeiro.');
-                return;
+        function atualizarNomeArquivo() {
+            if (inputArquivo.files.length > 0) {
+                const file = inputArquivo.files[0];
+                fileName.textContent = file.name;
+                fileInfo.classList.remove('hidden');
+                promptPlaceholder.textContent = "Pronto para analisar documento";
+                promptPlaceholder.classList.add('text-slate-200');
+                btnProcessar.disabled = false;
             }
+        }
 
-            const formData = new FormData();
-            formData.append('file', inputArquivo.files[0]);
-
-            resultadoDiv.classList.remove('hidden');
-            resultadoDiv.textContent = 'Analisando documento com Inteligência Artificial, por favor aguarde...';
+        function removerArquivo() {
+            inputArquivo.value = '';
+            fileInfo.classList.add('hidden');
+            promptPlaceholder.textContent = "Anexar documento para iniciar a análise...";
+            promptPlaceholder.classList.remove('text-slate-200');
             btnProcessar.disabled = true;
-            btnProcessar.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        function limparResultado() {
+            containerResultado.classList.add('hidden');
+            estadoVazio.classList.remove('hidden');
+        }
+
+        async function processarDocumento() {
+            if (inputArquivo.files.length === 0) return;
+
+            const file = inputArquivo.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Esconde estado vazio e mostra pop-up de carregamento
+            estadoVazio.classList.add('hidden');
+            containerResultado.classList.remove('hidden');
+            nomeArquivoExibicao.textContent = `Analisando: ${file.name}`;
+            resultadoDiv.textContent = 'Processando documento com inteligência artificial...';
+            btnProcessar.disabled = true;
 
             try {
-                // Utiliza rota relativa para funcionar perfeitamente no Render
                 const response = await fetch('/api/analisar', {
                     method: 'POST',
                     body: formData
@@ -76,15 +150,16 @@
                     throw new Error(data.error || 'Erro desconhecido ao processar.');
                 }
 
-                // Exibe o resultado formatado gerado pela IA
+                nomeArquivoExibicao.textContent = `Resultado: ${file.name}`;
                 resultadoDiv.textContent = data.resultado;
 
             } catch (error) {
                 console.error(error);
+                nomeArquivoExibicao.textContent = "Erro na Análise";
                 resultadoDiv.textContent = `Erro: ${error.message}`;
             } finally {
                 btnProcessar.disabled = false;
-                btnProcessar.classList.remove('opacity-50', 'cursor-not-allowed');
+                removerArquivo(); // Limpa o input para o próximo arquivo
             }
         }
     </script>
