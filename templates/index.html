@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocFlow IA - Análise e Gestão de Documentos</title>
     <style>
-        /* ESTÉTICA LIQUID GLASS & BOLINHAS DE FUNDO */
+        /* ESTÉTICA LIQUID GLASS & BOLINHAS DE FUNDO PROPORCIONAIS */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { 
             background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
@@ -13,19 +13,20 @@
             overflow-x: hidden; position: relative;
         }
 
-        /* CAMADA DE FUNDO COM BOLINHAS LIGADAS (APENAS ESTÉTICA) */
+        /* CAMADA DE FUNDO COM BOLINHAS LIGADAS REPRESENTANDO OS DOCUMENTOS */
         #bgUniverse {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             pointer-events: none; z-index: 0; overflow: hidden;
         }
         .lines-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .connection-line { fill: none; stroke: rgba(52, 152, 219, 0.3); stroke-width: 1.5px; stroke-linecap: round; }
+        .connection-line { fill: none; stroke: rgba(52, 152, 219, 0.35); stroke-width: 1.5px; stroke-linecap: round; }
 
-        .bg-circle-wrapper { position: absolute; width: 24px; height: 24px; transform: translate(-50%, -50%); }
+        .bg-circle-wrapper { position: absolute; width: 28px; height: 28px; transform: translate(-50%, -50%); }
         .neon-circle { 
             width: 100%; height: 100%; border-radius: 50%; 
-            background: rgba(52, 152, 219, 0.5); box-shadow: 0 0 12px rgba(52, 152, 219, 0.4); 
+            background: rgba(52, 152, 219, 0.7); box-shadow: 0 0 12px rgba(52, 152, 219, 0.5); 
             animation: floatVertical 5s ease-in-out infinite;
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 700;
         }
         @keyframes floatVertical { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
         
@@ -131,7 +132,7 @@
 </head>
 <body tabindex="0">
 
-    <!-- UNIVERSO DE BOLINHAS ESTÉTICAS NO FUNDO -->
+    <!-- UNIVERSO DE BOLINHAS ESTÉTICAS NO FUNDO (BASEADO NOS DOCUMENTOS SALVOS) -->
     <div id="bgUniverse">
         <svg class="lines-layer" id="bgLines">
             <defs id="bgGradDefs"></defs>
@@ -146,7 +147,7 @@
                 <h1 class="auth-title" id="authTitle">Bem-vindo ao DocFlow IA</h1>
                 <p class="auth-subtitle" id="authSubtitle">Faça login para continuar</p>
                 
-                <input type="email" id="emailInput" class="auth-input" placeholder="Seu e-mail">
+                <input type="email" id="emailInput" class="auth-input" placeholder="Sua e-mail">
                 <input type="password" id="passwordInput" class="auth-input" placeholder="Sua senha">
                 
                 <button id="authBtn" class="btn-primary" onclick="handleAuth()">Entrar</button>
@@ -330,12 +331,14 @@
                         });
                         globalHistorico.reverse();
                     }
+                    // Gera exatamente uma bolinha por documento salvo
                     gerarFundoCosmosEstetico(globalHistorico.length);
                 });
 
             } else {
                 document.getElementById('authScreen').style.display = 'flex';
                 document.getElementById('appScreen').style.display = 'none';
+                gerarFundoCosmosEstetico(0);
             }
         });
 
@@ -433,7 +436,7 @@
             }
         }
 
-        // Gera o fundo estético de bolinhas e linhas conectadas por todo o viewport
+        // Gera o número exato de bolinhas correspondente à quantidade de documentos salvos
         function gerarFundoCosmosEstetico(quantidadeDocs) {
             const universe = document.getElementById('bgUniverse');
             universe.querySelectorAll('.bg-circle-wrapper').forEach(el => el.remove());
@@ -441,41 +444,40 @@
             const linesLayer = document.getElementById('bgLines');
             while (linesLayer.querySelectorAll('line').length > 0) linesLayer.removeChild(linesLayer.lastChild);
 
-            const totalBolinhas = Math.max(12, quantidadeDocs * 2);
+            if (quantidadeDocs <= 0) return;
+
             const w = window.innerWidth;
             const h = window.innerHeight;
             let coords = [];
 
-            for (let i = 0; i < totalBolinhas; i++) {
+            for (let i = 0; i < quantidadeDocs; i++) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('bg-circle-wrapper');
 
-                const x = Math.random() * (w - 100) + 50;
-                const y = Math.random() * (h - 100) + 50;
+                const x = Math.random() * (w - 120) + 60;
+                const y = Math.random() * (h - 120) + 60;
                 wrapper.style.left = `${x}px`;
                 wrapper.style.top = `${y}px`;
 
                 const circle = document.createElement('div');
                 circle.classList.add('neon-circle');
+                circle.innerText = (i + 1);
                 wrapper.appendChild(circle);
                 universe.appendChild(wrapper);
 
                 coords.push({ x, y });
             }
 
-            // Conecta as bolinhas com linhas estéticas no fundo
+            // Conecta as bolinhas dos documentos salvos com linhas estéticas no fundo
             for (let i = 0; i < coords.length; i++) {
                 for (let j = i + 1; j < coords.length; j++) {
-                    const dist = Math.hypot(coords[i].x - coords[j].x, coords[i].y - coords[j].y);
-                    if (dist < 200) {
-                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        line.setAttribute('x1', coords[i].x);
-                        line.setAttribute('y1', coords[i].y);
-                        line.setAttribute('x2', coords[j].x);
-                        line.setAttribute('y2', coords[j].y);
-                        line.classList.add('connection-line');
-                        linesLayer.appendChild(line);
-                    }
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', coords[i].x);
+                    line.setAttribute('y1', coords[i].y);
+                    line.setAttribute('x2', coords[j].x);
+                    line.setAttribute('y2', coords[j].y);
+                    line.classList.add('connection-line');
+                    linesLayer.appendChild(line);
                 }
             }
         }
