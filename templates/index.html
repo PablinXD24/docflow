@@ -1,105 +1,132 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocFlow IA - Análise de Documentos</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-white text-slate-800 h-full flex flex-col justify-center items-center p-4 antialiased selection:bg-blue-600 selection:text-white">
-
-    <!-- Área Central (Barra de Prompt Maior e Arredondada + Resposta Integrada) -->
-    <main class="w-full max-w-2xl mx-auto flex flex-col items-center">
+    <style>
+        /* ESTÉTICA LIQUID GLASS */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         
-        <!-- Bloco Unificado -->
-        <div class="w-full bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/50 transition-all duration-300 overflow-hidden">
+        .smart-container { 
+            background: rgba(255, 255, 255, 0.65); 
+            backdrop-filter: blur(24px); 
+            border: 1px solid rgba(255, 255, 255, 0.9); 
+            border-radius: 24px; 
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.08); 
+            width: 100%; 
+            max-width: 700px; 
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        .prompt-area { padding: 24px; display: flex; flex-direction: column; gap: 16px; background: rgba(255, 255, 255, 0.3); }
+        .header-title { font-size: 14px; font-weight: 600; color: #596a7b; display: flex; justify-content: space-between; align-items: center; }
+        
+        .ai-badge { 
+            font-size: 12px; 
+            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-weight: 800; 
+            letter-spacing: 1px;
+        }
+
+        .upload-row { display: flex; align-items: center; gap: 12px; }
+        .file-label { 
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; 
+            background: #2c3e50; color: white; border-radius: 12px; font-size: 14px; 
+            font-weight: 600; cursor: pointer; transition: 0.3s; 
+        }
+        .file-label:hover { background: #000; }
+        .file-name { font-size: 14px; color: #2c3e50; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .status-text { font-size: 13px; color: #3498db; font-weight: 500; opacity: 0; display: flex; align-items: center; gap: 8px; }
+        
+        .btn-submit { background: #2c3e50; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s; }
+        .btn-submit:hover:not(:disabled) { transform: scale(1.1); background: #000; }
+        .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .results-area { max-height: 0; opacity: 0; transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(255, 255, 255, 0.85); border-top: 1px solid rgba(0,0,0,0.05); overflow: hidden; }
+        .expanded .results-area { max-height: 1200px; opacity: 1; padding: 32px 24px; }
+
+        .result-block { margin-bottom: 24px; }
+        .result-title { font-size: 12px; font-weight: 700; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .script-box { background: white; border: 1px solid #dcdde1; padding: 16px; border-radius: 12px; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        
+        .btn-copy { position: absolute; top: 12px; right: 12px; background: #f1f2f6; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .btn-copy:hover { background: #e4e6ef; }
+
+        .spinner { width: 16px; height: 16px; border: 2px solid #3498db; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="smart-container" id="mainContainer">
+        <div class="prompt-area">
+            <div class="header-title">
+                <span>Análise e Classificação de Documentos</span>
+                <span class="ai-badge">✦ DocFlow IA</span>
+            </div>
             
-            <!-- Barra de Input (Prompt) -->
-            <div class="p-4 flex flex-col justify-center">
-                <!-- Nome do arquivo selecionado -->
-                <div id="fileInfo" class="hidden px-4 py-2 mb-3 text-xs text-blue-700 bg-blue-50 rounded-2xl flex items-center justify-between border border-blue-100">
-                    <span id="fileName" class="truncate font-medium"></span>
-                    <button type="button" onclick="removerArquivo()" class="text-slate-400 hover:text-slate-700 ml-2 font-bold">✕</button>
-                </div>
-
-                <div class="flex items-center justify-between gap-3">
-                    <!-- Botão de Anexo -->
-                    <label class="cursor-pointer p-3 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition flex items-center justify-center">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                        </svg>
-                        <input type="file" id="arquivoPdf" accept=".pdf,.doc,.docx,.txt,.png,.jpg" class="hidden" onchange="atualizarNomeArquivo()" />
-                    </label>
-
-                    <!-- Placeholder descritivo -->
-                    <div class="flex-1 px-2 text-base text-slate-400 select-none">
-                        <span id="promptPlaceholder">Anexar documento para iniciar... (Pressione Enter)</span>
-                    </div>
-
-                    <!-- Botão de Envio -->
-                    <button onclick="processarDocumento()" id="btnProcessar" disabled
-                        class="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-300 text-white p-3 rounded-full transition-all duration-200 flex items-center justify-center shadow-md shadow-blue-600/20">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                </div>
+            <div class="upload-row">
+                <label class="file-label">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                    </svg>
+                    Selecionar Arquivo
+                    <input type="file" id="arquivoPdf" accept=".pdf,.doc,.docx,.txt,.png,.jpg" style="display: none;" onchange="atualizarNomeArquivo()" />
+                </label>
+                <span id="fileName" class="file-name">Nenhum arquivo selecionado</span>
             </div>
-
-            <!-- Área de Resposta Integrada -->
-            <div id="containerResultado" class="hidden border-t border-slate-100 bg-slate-50/50 p-6 transition-all duration-300">
-                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/60">
-                    <span id="nomeArquivoExibicao" class="text-xs font-bold uppercase tracking-wider text-blue-600">Resultado da Análise</span>
-                    <button onclick="limparResultado()" class="text-xs text-slate-400 hover:text-slate-700 font-medium">Nova Análise</button>
+            
+            <div class="action-bar">
+                <div class="status-text" id="statusText">
+                    <div class="spinner"></div> Processando documento...
                 </div>
-                <div id="resultado" class="text-slate-700 text-sm leading-relaxed overflow-y-auto max-h-[350px] whitespace-pre-wrap font-sans"></div>
+                
+                <button id="btnSubmit" class="btn-submit" disabled onclick="processarDocumento()">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
             </div>
-
         </div>
-    </main>
 
-    <!-- Script de Interação -->
+        <div class="results-area">
+            <div class="result-block">
+                <div class="result-title" id="resultadoTitulo">⚡ Relatório da Análise</div>
+                <div class="script-box">
+                    <button id="btnCopiar" class="btn-copy">Copiar</button>
+                    <div id="iaResultado" style="white-space: pre-wrap; color: #2c3e50; font-size: 15px; line-height: 1.5;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const inputArquivo = document.getElementById('arquivoPdf');
-        const fileInfo = document.getElementById('fileInfo');
         const fileName = document.getElementById('fileName');
-        const promptPlaceholder = document.getElementById('promptPlaceholder');
-        const btnProcessar = document.getElementById('btnProcessar');
-        const containerResultado = document.getElementById('containerResultado');
-        const resultadoDiv = document.getElementById('resultado');
-        const nomeArquivoExibicao = document.getElementById('nomeArquivoExibicao');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const mainContainer = document.getElementById('mainContainer');
+        const statusText = document.getElementById('statusText');
+        const iaResultado = document.getElementById('iaResultado');
+        const resultadoTitulo = document.getElementById('resultadoTitulo');
 
         function atualizarNomeArquivo() {
             if (inputArquivo.files.length > 0) {
-                const file = inputArquivo.files[0];
-                fileName.textContent = file.name;
-                fileInfo.classList.remove('hidden');
-                promptPlaceholder.textContent = "Pronto para enviar (Pressione Enter)";
-                promptPlaceholder.classList.add('text-slate-700', 'font-medium');
-                btnProcessar.disabled = false;
+                fileName.textContent = inputArquivo.files[0].name;
+                btnSubmit.disabled = false;
+            } else {
+                fileName.textContent = "Nenhum arquivo selecionado";
+                btnSubmit.disabled = true;
             }
         }
-
-        function removerArquivo() {
-            inputArquivo.value = '';
-            fileInfo.classList.add('hidden');
-            promptPlaceholder.textContent = "Anexar documento para iniciar... (Pressione Enter)";
-            promptPlaceholder.classList.remove('text-slate-700', 'font-medium');
-            btnProcessar.disabled = true;
-        }
-
-        function limparResultado() {
-            containerResultado.classList.add('hidden');
-            removerArquivo();
-        }
-
-        // Atalho da tecla Enter para enviar o documento
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && !btnProcessar.disabled && inputArquivo.files.length > 0) {
-                processarDocumento();
-            }
-        });
 
         async function processarDocumento() {
             if (inputArquivo.files.length === 0) return;
@@ -108,10 +135,9 @@
             const formData = new FormData();
             formData.append('file', file);
 
-            containerResultado.classList.remove('hidden');
-            nomeArquivoExibicao.textContent = `Analisando: ${file.name}`;
-            resultadoDiv.textContent = 'Processando documento...';
-            btnProcessar.disabled = true;
+            btnSubmit.disabled = true;
+            statusText.style.opacity = "1";
+            mainContainer.classList.remove('expanded');
 
             try {
                 const response = await fetch('/api/analisar', {
@@ -133,17 +159,27 @@
                     throw new Error(data.error || 'Erro desconhecido ao processar.');
                 }
 
-                nomeArquivoExibicao.textContent = `Resultado da Análise: ${file.name}`;
-                resultadoDiv.textContent = data.resultado;
+                resultadoTitulo.textContent = `⚡ Resultado: ${file.name}`;
+                iaResultado.textContent = data.resultado;
+                mainContainer.classList.add('expanded');
 
             } catch (error) {
                 console.error(error);
-                nomeArquivoExibicao.textContent = "Erro na Análise";
-                resultadoDiv.textContent = `Erro: ${error.message}`;
+                resultadoTitulo.textContent = "⚡ Erro na Análise";
+                iaResultado.textContent = `Erro: ${error.message}`;
+                mainContainer.classList.add('expanded');
             } finally {
-                btnProcessar.disabled = false;
+                statusText.style.opacity = "0";
+                btnSubmit.disabled = false;
             }
         }
+
+        document.getElementById('btnCopiar').addEventListener('click', () => {
+            navigator.clipboard.writeText(iaResultado.innerText);
+            const b = document.getElementById('btnCopiar');
+            b.innerText = "Copiado!";
+            setTimeout(() => b.innerText = "Copiar", 2000);
+        });
     </script>
 </body>
 </html>
