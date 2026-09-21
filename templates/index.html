@@ -7,77 +7,82 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 h-full flex flex-col justify-between antialiased selection:bg-blue-500 selection:text-white">
+<body class="bg-white text-slate-800 h-full flex flex-col justify-between antialiased selection:bg-blue-600 selection:text-white">
 
     <!-- Cabeçalho Minimalista -->
-    <header class="w-full max-w-4xl mx-auto p-6 flex items-center justify-between border-b border-slate-800/60">
+    <header class="w-full max-w-3xl mx-auto p-6 flex items-center justify-between border-b border-slate-100">
         <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
+            <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-blue-600/20">
                 D
             </div>
-            <span class="font-semibold tracking-wide text-lg bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">DocFlow IA</span>
+            <span class="font-bold tracking-wide text-lg text-slate-900">DocFlow IA</span>
         </div>
-        <span class="text-xs px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400">Gemini Flash Ativo</span>
+        <span class="text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-medium">Gemini Flash</span>
     </header>
 
-    <!-- Área Principal de Resposta (Pop-up abaixo da barra) -->
-    <main class="w-full max-w-3xl mx-auto px-4 flex-1 flex flex-col justify-center py-8">
-        <div id="containerResultado" class="hidden w-full bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 backdrop-blur-md transition-all duration-300">
-            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
-                <div class="flex items-center space-x-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                    <h3 id="nomeArquivoExibicao" class="text-sm font-medium text-slate-300 truncate max-w-md">Análise Concluída</h3>
-                </div>
-                <button onclick="limparResultado()" class="text-xs text-slate-500 hover:text-slate-300 transition">Fechar</button>
-            </div>
-            <div id="resultado" class="text-slate-200 text-sm leading-relaxed overflow-y-auto max-h-[400px] whitespace-pre-wrap"></div>
+    <!-- Área Central (Barra de Prompt + Resposta Integrada) -->
+    <main class="w-full max-w-2xl mx-auto px-4 flex-1 flex flex-col justify-center items-center">
+        
+        <!-- Título Inicial (Some quando a resposta aparece para focar no conteúdo) -->
+        <div id="blocoTitulo" class="text-center mb-8 transition-all duration-300">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
+                Classificação e Tratamento de Documentos
+            </h1>
+            <p class="text-slate-500 text-sm max-w-md mx-auto">
+                Envie um documento para extrair as principais informações sem caracteres de formatação complexos.
+            </p>
         </div>
 
-        <!-- Estado Inicial Vazio -->
-        <div id="estadoVazio" class="text-center py-12">
-            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">
-                Como posso ajudar a analisar seu documento?
-            </h1>
-            <p class="text-slate-400 text-sm max-w-md mx-auto">
-                Anexe um arquivo abaixo para classificar e extrair as principais informações instantaneamente com Inteligência Artificial.
-            </p>
+        <!-- Bloco Unificado (Barra de Prompt + Resposta logo abaixo grudada) -->
+        <div class="w-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 transition-all duration-300 overflow-hidden">
+            
+            <!-- Barra de Input (Prompt) -->
+            <div class="p-3">
+                <!-- Nome do arquivo selecionado -->
+                <div id="fileInfo" class="hidden px-3 py-1.5 mb-2 text-xs text-blue-700 bg-blue-50 rounded-lg flex items-center justify-between border border-blue-100">
+                    <span id="fileName" class="truncate font-medium"></span>
+                    <button type="button" onclick="removerArquivo()" class="text-slate-400 hover:text-slate-700 ml-2 font-bold">✕</button>
+                </div>
+
+                <div class="flex items-center justify-between gap-2">
+                    <!-- Botão de Anexo -->
+                    <label class="cursor-pointer p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                        </svg>
+                        <input type="file" id="arquivoPdf" accept=".pdf,.doc,.docx,.txt,.png,.jpg" class="hidden" onchange="atualizarNomeArquivo()" />
+                    </label>
+
+                    <!-- Placeholder descritivo -->
+                    <div class="flex-1 px-2 text-sm text-slate-400 select-none">
+                        <span id="promptPlaceholder">Anexar documento para iniciar...</span>
+                    </div>
+
+                    <!-- Botão de Envio -->
+                    <button onclick="processarDocumento()" id="btnProcessar" disabled
+                        class="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-300 text-white p-2.5 rounded-xl transition-all duration-200 flex items-center justify-center shadow-md shadow-blue-600/20">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Área de Resposta Integrada (Aparece colada logo abaixo da barra) -->
+            <div id="containerResultado" class="hidden border-t border-slate-100 bg-slate-50/50 p-6 transition-all duration-300">
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/60">
+                    <span id="nomeArquivoExibicao" class="text-xs font-bold uppercase tracking-wider text-blue-600">Resultado da Análise</span>
+                    <button onclick="limparResultado()" class="text-xs text-slate-400 hover:text-slate-700 font-medium">Nova Análise</button>
+                </div>
+                <div id="resultado" class="text-slate-700 text-sm leading-relaxed overflow-y-auto max-h-[350px] whitespace-pre-wrap font-sans"></div>
+            </div>
+
         </div>
     </main>
 
-    <!-- Barra de Input Estilo Prompt (Fixa na Base) -->
-    <footer class="w-full max-w-3xl mx-auto p-4 mb-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-2.5 shadow-2xl shadow-black/50 focus-within:border-blue-500/60 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-            
-            <!-- Nome do arquivo selecionado (se houver) -->
-            <div id="fileInfo" class="hidden px-3 py-1 mb-2 text-xs text-blue-400 bg-blue-500/10 rounded-lg flex items-center justify-between">
-                <span id="fileName" class="truncate"></span>
-                <button type="button" onclick="removerArquivo()" class="text-slate-400 hover:text-white ml-2">✕</button>
-            </div>
-
-            <div class="flex items-center justify-between gap-2">
-                <!-- Botão de Anexo (Customizado) -->
-                <label class="cursor-pointer p-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                    </svg>
-                    <input type="file" id="arquivoPdf" accept=".pdf,.doc,.docx,.txt,.png,.jpg" class="hidden" onchange="atualizarNomeArquivo()" />
-                </label>
-
-                <!-- Campo de Texto / Placeholder descritivo -->
-                <div class="flex-1 px-2 text-sm text-slate-400 select-none">
-                    <span id="promptPlaceholder">Anexar documento para iniciar a análise...</span>
-                </div>
-
-                <!-- Botão de Envio Estilo IA -->
-                <button onclick="processarDocumento()" id="btnProcessar" disabled
-                    class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 text-white p-2.5 rounded-xl transition-all duration-200 flex items-center justify-center shadow-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <p class="text-center text-[11px] text-slate-600 mt-3">O DocFlow IA pode cometer erros. Verifique informações críticas.</p>
+    <!-- Rodapé -->
+    <footer class="w-full text-center py-4 text-xs text-slate-400 border-t border-slate-100">
+        DocFlow IA &bull; Inteligência Artificial para Documentos
     </footer>
 
     <!-- Script de Interação -->
@@ -88,7 +93,7 @@
         const promptPlaceholder = document.getElementById('promptPlaceholder');
         const btnProcessar = document.getElementById('btnProcessar');
         const containerResultado = document.getElementById('containerResultado');
-        const estadoVazio = document.getElementById('estadoVazio');
+        const blocoTitulo = document.getElementById('blocoTitulo');
         const resultadoDiv = document.getElementById('resultado');
         const nomeArquivoExibicao = document.getElementById('nomeArquivoExibicao');
 
@@ -97,8 +102,8 @@
                 const file = inputArquivo.files[0];
                 fileName.textContent = file.name;
                 fileInfo.classList.remove('hidden');
-                promptPlaceholder.textContent = "Pronto para analisar documento";
-                promptPlaceholder.classList.add('text-slate-200');
+                promptPlaceholder.textContent = "Pronto para enviar";
+                promptPlaceholder.classList.add('text-slate-700', 'font-medium');
                 btnProcessar.disabled = false;
             }
         }
@@ -106,14 +111,15 @@
         function removerArquivo() {
             inputArquivo.value = '';
             fileInfo.classList.add('hidden');
-            promptPlaceholder.textContent = "Anexar documento para iniciar a análise...";
-            promptPlaceholder.classList.remove('text-slate-200');
+            promptPlaceholder.textContent = "Anexar documento para iniciar...";
+            promptPlaceholder.classList.remove('text-slate-700', 'font-medium');
             btnProcessar.disabled = true;
         }
 
         function limparResultado() {
             containerResultado.classList.add('hidden');
-            estadoVazio.classList.remove('hidden');
+            blocoTitulo.classList.remove('hidden');
+            removerArquivo();
         }
 
         async function processarDocumento() {
@@ -123,11 +129,11 @@
             const formData = new FormData();
             formData.append('file', file);
 
-            // Esconde estado vazio e mostra pop-up de carregamento
-            estadoVazio.classList.add('hidden');
+            // Esconde o título e abre o painel de resposta integrado logo abaixo
+            blocoTitulo.classList.add('hidden');
             containerResultado.classList.remove('hidden');
             nomeArquivoExibicao.textContent = `Analisando: ${file.name}`;
-            resultadoDiv.textContent = 'Processando documento com inteligência artificial...';
+            resultadoDiv.textContent = 'Processando documento...';
             btnProcessar.disabled = true;
 
             try {
@@ -150,7 +156,7 @@
                     throw new Error(data.error || 'Erro desconhecido ao processar.');
                 }
 
-                nomeArquivoExibicao.textContent = `Resultado: ${file.name}`;
+                nomeArquivoExibicao.textContent = `Resultado da Análise: ${file.name}`;
                 resultadoDiv.textContent = data.resultado;
 
             } catch (error) {
@@ -159,7 +165,6 @@
                 resultadoDiv.textContent = `Erro: ${error.message}`;
             } finally {
                 btnProcessar.disabled = false;
-                removerArquivo(); // Limpa o input para o próximo arquivo
             }
         }
     </script>
