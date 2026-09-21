@@ -1,13 +1,26 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
-from google import genai
+import google.generativeai as genai
 
 app = Flask(__name__)
 
-# Configuração da chave de API do Gemini usando o novo cliente
+# Configuração da chave de API do Gemini via variável de ambiente
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "SUA_CHAVE_API_AQUI")
-client = genai.Client(api_key=GEMINI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Configuração do modelo Gemini
+generation_config = {
+    "temperature": 0.2,
+    "top_p": 0.95,
+    "top_k": 40,
+    "max_output_tokens": 2048,
+}
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    generation_config=generation_config
+)
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -38,9 +51,10 @@ def analisar_documento():
         file.save(filepath)
         
         try:
-            # Faz o upload do arquivo usando a File API do novo SDK
-            uploaded_file = client.files.upload(file=filepath)
+            # Envia o arquivo para a API do Google (File API)
+            uploaded_file = genai.upload_file(filepath)
             
+            # Prompt estruturado solicitando os dados principais no início e em negrito
             prompt = (
                 "Você é um assistente especialista em análise de documentos e contratos. "
                 "Analise detalhadamente este documento e forneça um resumo estruturado. "
@@ -49,10 +63,7 @@ def analisar_documento():
                 "Em seguida, apresente os demais detalhes, cláusulas e o contexto geral do documento de forma clara e limpa."
             )
             
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=[uploaded_file, prompt]
-            )
+            response = model.generate_content([uploaded_file, prompt])
             resultado_texto = response.text
             
             # Remove o arquivo temporário do servidor
