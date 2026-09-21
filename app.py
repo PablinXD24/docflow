@@ -2,7 +2,6 @@ import os
 from flask import Flask, render_template, request, jsonify
 from google import genai
 from google.genai import types
-import io
 
 app = Flask(__name__)
 
@@ -25,11 +24,10 @@ def analisar():
         return jsonify({"error": "Nome de arquivo inválido"}), 400
 
     try:
-        # Lê os bytes do arquivo enviado pelo usuário
         file_bytes = file.read()
         mime_type = file.content_type or "application/pdf"
 
-        # Envia os bytes diretamente para o Gemini utilizando o tipo Part.from_bytes
+        # Chamada utilizando o SDK atualizado do Google GenAI
         response = client.models.generate_content(
             model="gemini-3.6-flash",
             contents=[
@@ -44,6 +42,8 @@ def analisar():
         return jsonify({"resultado": response.text})
 
     except Exception as e:
+        # Imprime o erro completo no log do Render para você conseguir inspecionar
+        print(f"Erro interno no servidor: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
