@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocFlow IA - Análise e Gestão de Documentos</title>
     <style>
-        /* ESTÉTICA LIQUID GLASS LIMPA */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { 
             background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
@@ -24,7 +23,7 @@
             width: 100%; 
             max-width: 740px; 
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
-            overflow: hidden; 
+            overflow: visible; /* Alterado para permitir que elementos flutuem para fora se necessário */
             display: flex; 
             flex-direction: column; 
         }
@@ -56,13 +55,13 @@
             flex-direction: column; 
             gap: 16px; 
             background: rgba(255, 255, 255, 0.3); 
+            position: relative; /* Contexto de posicionamento para o dropdown */
         }
 
         .header-title { font-size: 14px; font-weight: 600; color: #596a7b; display: flex; justify-content: space-between; align-items: center; }
         .ai-badge { font-size: 12px; background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; letter-spacing: 1px; }
 
-        /* Barra Dividida em Duas Partes */
-        .split-bar { display: flex; gap: 12px; align-items: center; width: 100%; position: relative; }
+        .split-bar { display: flex; gap: 12px; align-items: center; width: 100%; }
         .split-section { flex: 1; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
         
         .upload-trigger { cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; }
@@ -70,12 +69,12 @@
 
         .search-input { width: 100%; background: transparent; border: none; outline: none; font-size: 14px; color: #2c3e50; }
         
-        /* IDEIA DE VISUALIZAÇÃO: Painel de Resultados de Busca Estilo Card / Modal Dropdown */
+        /* DROPDOWN FORA DA BARRA (Posicionado logo abaixo de toda a split-bar) */
         .search-results-dropdown {
-            position: absolute; top: 110%; right: 0; width: 100%; max-height: 280px; overflow-y: auto;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            display: none; flex-direction: column; gap: 8px; padding: 12px; z-index: 100;
+            position: absolute; top: calc(100% - 15px); left: 24px; right: 24px; max-height: 280px; overflow-y: auto;
+            background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+            display: none; flex-direction: column; gap: 8px; padding: 12px; z-index: 999;
         }
         .search-dropdown-header { font-size: 11px; font-weight: 700; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 4px; }
         .search-result-item {
@@ -167,16 +166,16 @@
                         </div>
 
                         <!-- Lado Direito: Buscar nos Resumos Salvos (Nome, CPF, CNPJ, etc.) -->
-                        <div class="split-section" style="position: relative;">
+                        <div class="split-section">
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#7f8c8d" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                             </svg>
                             <input type="text" id="searchInput" class="search-input" placeholder="Buscar por Nome, CPF, CNPJ..." onfocus="mostrarHistoricoCompleto()" oninput="filtrarHistoricoBusca(this.value)">
-                            
-                            <!-- Dropdown Inteligente de Busca e Visualização -->
-                            <div id="searchResultsDropdown" class="search-results-dropdown"></div>
                         </div>
                     </div>
+
+                    <!-- Dropdown Inteligente posicionado fora da barra, flutuando abaixo -->
+                    <div id="searchResultsDropdown" class="search-results-dropdown"></div>
                     
                     <div class="action-bar">
                         <div class="status-text" id="statusText">
@@ -413,12 +412,10 @@
             }
         }
 
-        // Ideia de Visualização: Mostra todos os docs salvos ao focar na busca
         window.mostrarHistoricoCompleto = function() {
             renderizarDropdownResultados(globalHistorico, "Documentos Recentes Salvos");
         }
 
-        // Ideia de Busca Inteligente por Nome, CPF, CNPJ ou conteúdo
         window.filtrarHistoricoBusca = function(termo) {
             if (!termo || termo.trim() === "") {
                 mostrarHistoricoCompleto();
@@ -456,7 +453,6 @@
             dropdown.style.display = 'flex';
         }
 
-        // Fecha o dropdown se clicar fora
         document.addEventListener('click', function(e) {
             const searchInput = document.getElementById('searchInput');
             const dropdown = document.getElementById('searchResultsDropdown');
