@@ -5,8 +5,14 @@ import google.generativeai as genai
 
 app = Flask(__name__)
 
-# Configuração da chave de API do Gemini via variável de ambiente
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "SUA_CHAVE_API_AQUI")
+# Lê a chave de ambiente e remove espaços acidentais
+GEMINI_API_KEY = (os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or "").strip()
+
+if not GEMINI_API_KEY:
+    print("AVISO: Chave de API do Gemini não encontrada nas variáveis de ambiente!")
+else:
+    print(f"Chave carregada com sucesso (Inicia com: {GEMINI_API_KEY[:6]}...)")
+
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Configuração do modelo Gemini
@@ -51,10 +57,8 @@ def analisar_documento():
         file.save(filepath)
         
         try:
-            # Envia o arquivo para a API do Google (File API)
             uploaded_file = genai.upload_file(filepath)
             
-            # Prompt estruturado solicitando os dados principais no início e em negrito
             prompt = (
                 "Você é um assistente especialista em análise de documentos e contratos. "
                 "Analise detalhadamente este documento e forneça um resumo estruturado. "
@@ -66,7 +70,6 @@ def analisar_documento():
             response = model.generate_content([uploaded_file, prompt])
             resultado_texto = response.text
             
-            # Remove o arquivo temporário do servidor
             if os.path.exists(filepath):
                 os.remove(filepath)
                 
