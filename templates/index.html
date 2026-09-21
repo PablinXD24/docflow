@@ -288,7 +288,6 @@
             signOut(auth);
         }
 
-        // Monitorar Autenticação e Carregar Histórico das Caixas
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('authScreen').style.display = 'none';
@@ -296,7 +295,6 @@
                 document.getElementById('historySidebar').style.display = 'flex';
                 document.getElementById('userEmailDisplay').textContent = `Logado como: ${user.email}`;
 
-                // Escutar dados do Realtime Database
                 const historicoRef = ref(db, `historico_analises/${user.uid}`);
                 onValue(historicoRef, (snapshot) => {
                     globalHistorico = [];
@@ -305,7 +303,7 @@
                         Object.keys(data).forEach(key => {
                             globalHistorico.push({ id: key, ...data[key] });
                         });
-                        globalHistorico.reverse(); // Mais recentes primeiro
+                        globalHistorico.reverse();
                     }
                     renderizarHistorico(globalHistorico);
                 });
@@ -380,6 +378,12 @@
                 iaResultado.textContent = data.resultado;
                 mainContainer.classList.add('expanded');
 
+                // LÓGICA SOLICITADA: Limpa o arquivo da barra e desativa o botão de envio, deixando a barra livre
+                inputArquivo.value = "";
+                fileName.textContent = "Anexar novo doc...";
+                fileName.style.color = "#7f8c8d";
+                btnSubmit.disabled = true;
+
             } catch (error) {
                 console.error(error);
                 resultadoTitulo.textContent = "⚡ Erro na Análise";
@@ -387,11 +391,9 @@
                 mainContainer.classList.add('expanded');
             } finally {
                 statusText.style.opacity = "0";
-                btnSubmit.disabled = false;
             }
         }
 
-        // Salvar nas Caixas explicitamente pelo botão
         window.salvarNasCaixas = function() {
             if (!ultimoResultadoAtual) {
                 alert("Nenhum resultado gerado para salvar.");
@@ -408,7 +410,6 @@
             }
         }
 
-        // Renderizar Cards de Histórico
         function renderizarHistorico(lista) {
             const historyList = document.getElementById('historyList');
             if (lista.length === 0) {
@@ -429,7 +430,6 @@
             historyList.innerHTML = html;
         }
 
-        // Filtrar histórico pela barra de busca (Nome, CPF, CNPJ, etc.)
         window.filtrarHistorico = function(termo) {
             const termoLower = termo.toLowerCase();
             const filtrados = globalHistorico.filter(item => 
@@ -439,7 +439,6 @@
             renderizarHistorico(filtrados);
         }
 
-        // Abrir documento salvo ao clicar na caixa
         window.abrirDocumentoSalvo = function(nome, resultado) {
             ultimoNomeArquivoAtual = nome;
             ultimoResultadoAtual = resultado;
