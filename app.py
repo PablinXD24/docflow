@@ -7,7 +7,7 @@ from google.genai import types
 app = Flask(__name__)
 CORS(app)
 
-# Configura a API do Google GenAI com a chave de ambiente configurada no Render
+# Configura a API do Google GenAI com a chave de ambiente do Render
 api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
@@ -29,9 +29,9 @@ def analisar():
         file_bytes = file.read()
         mime_type = file.content_type or 'application/pdf'
 
-        # Chamada para a API do Gemini processar o documento enviado
+        # Chamada para a API do Gemini utilizando o modelo gemini-3.6-flash exigido
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.6-flash',
             contents=[
                 types.Part.from_bytes(
                     data=file_bytes,
