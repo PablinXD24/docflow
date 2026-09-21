@@ -5,21 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocFlow IA - Análise e Gestão de Documentos</title>
     <style>
-        /* ESTÉTICA LIQUID GLASS & BOLINHAS NEURAIS DE BACKGROUND */
+        /* ESTÉTICA LIQUID GLASS & BOLINHAS DE FUNDO */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { 
             background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(52, 152, 219, 0.1) 0%, transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(44, 62, 80, 0.08) 0%, transparent 25%);
             min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; 
-            overflow-x: hidden;
+            overflow-x: hidden; position: relative;
         }
+
+        /* CAMADA DE FUNDO COM BOLINHAS LIGADAS (APENAS ESTÉTICA) */
+        #bgUniverse {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .lines-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .connection-line { fill: none; stroke: rgba(52, 152, 219, 0.3); stroke-width: 1.5px; stroke-linecap: round; }
+
+        .bg-circle-wrapper { position: absolute; width: 24px; height: 24px; transform: translate(-50%, -50%); }
+        .neon-circle { 
+            width: 100%; height: 100%; border-radius: 50%; 
+            background: rgba(52, 152, 219, 0.5); box-shadow: 0 0 12px rgba(52, 152, 219, 0.4); 
+            animation: floatVertical 5s ease-in-out infinite;
+        }
+        @keyframes floatVertical { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
         
-        .main-wrapper { display: flex; gap: 20px; width: 100%; max-width: 1150px; justify-content: center; align-items: flex-start; z-index: 10; }
+        .main-wrapper { display: flex; gap: 20px; width: 100%; max-width: 800px; justify-content: center; align-items: flex-start; z-index: 10; }
 
         .smart-container { 
-            background: rgba(255, 255, 255, 0.65); 
+            background: rgba(255, 255, 255, 0.75); 
             backdrop-filter: blur(24px); 
             border: 1px solid rgba(255, 255, 255, 0.9); 
             border-radius: 24px; 
@@ -66,14 +79,14 @@
 
         /* Barra Dividida em Duas Partes */
         .split-bar { display: flex; gap: 12px; align-items: center; width: 100%; position: relative; }
-        .split-section { flex: 1; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+        .split-section { flex: 1; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
         
         .upload-trigger { cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; }
         .file-name { font-size: 14px; color: #2c3e50; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .search-input { width: 100%; background: transparent; border: none; outline: none; font-size: 14px; color: #2c3e50; }
         
-        /* Dropdown de Opções de Busca ao Lado */
+        /* Dropdown de Opções de Busca */
         .search-results-dropdown {
             position: absolute; top: 110%; right: 0; width: 50%; max-height: 220px; overflow-y: auto;
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
@@ -93,7 +106,7 @@
         .btn-submit:hover:not(:disabled) { transform: scale(1.1); background: #000; }
         .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .results-area { max-height: 0; opacity: 0; transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(255, 255, 255, 0.85); border-top: 1px solid rgba(0,0,0,0.05); overflow: hidden; display: flex; }
+        .results-area { max-height: 0; opacity: 0; transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(255, 255, 255, 0.9); border-top: 1px solid rgba(0,0,0,0.05); overflow: hidden; display: flex; }
         .expanded .results-area { max-height: 1200px; opacity: 1; padding: 32px 24px; }
 
         .result-content-wrapper { flex: 1; min-width: 0; }
@@ -112,42 +125,18 @@
         .share-btn.download:hover { background: #2c3e50; color: white; }
         .share-btn.save-box:hover { background: #f39c12; color: white; }
 
-        /* --- SIDEBAR DIREITA COM CARDS FUNCIONAIS + COSMOS DE BOLINHAS DE BACKGROUND --- */
-        .history-sidebar { 
-            width: 320px; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(24px); 
-            border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 24px; padding: 20px; 
-            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.08); display: none; flex-direction: column; gap: 12px; 
-            height: 520px; position: relative; overflow: hidden; 
-        }
-        .history-title { font-size: 13px; font-weight: 700; color: #596a7b; text-transform: uppercase; letter-spacing: 1px; z-index: 5; margin-bottom: 4px; }
-        
-        /* Lista de Cards Funcionais de Resumos */
-        .history-list-container {
-            flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; z-index: 5; padding-right: 2px;
-        }
-        .history-card { background: white; border: 1px solid #dcdde1; border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .history-card:hover { transform: translateY(-2px); border-color: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,0.15); }
-        .card-name { font-size: 14px; font-weight: 600; color: #2c3e50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-date { font-size: 11px; color: #95a5a6; margin-top: 4px; }
-
-        /* Cosmos de Bolinhas puramente estéticas no fundo da sidebar */
-        .bubble-universe-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; opacity: 0.35; }
-        .lines-layer { position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
-        .connection-line { fill: none; stroke-width: 1.5px; stroke-linecap: round; opacity: 0.5; vector-effect: non-scaling-stroke; }
-
-        .bg-circle-wrapper { position: absolute; width: 28px; height: 28px; transform: translate(-50%, -50%); pointer-events: none; }
-        .neon-circle-bg { 
-            width: 100%; height: 100%; border-radius: 50%; 
-            background: #3498db; box-shadow: 0 0 10px #3498db; 
-            animation: floatVertical 4s ease-in-out infinite;
-        }
-        @keyframes floatVertical { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
-
         .spinner { width: 16px; height: 16px; border: 2px solid #3498db; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body tabindex="0">
+
+    <!-- UNIVERSO DE BOLINHAS ESTÉTICAS NO FUNDO -->
+    <div id="bgUniverse">
+        <svg class="lines-layer" id="bgLines">
+            <defs id="bgGradDefs"></defs>
+        </svg>
+    </div>
 
     <div class="main-wrapper">
         <div class="smart-container" id="mainContainer">
@@ -252,21 +241,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- SIDEBAR DIREITA: CARDS FUNCIONAIS + COSMOS DE BOLINHAS APENAS COMO BACKGROUND ESTÉTICO -->
-        <div class="history-sidebar" id="historySidebar">
-            <!-- Bolinhas de Background Estéticas -->
-            <div class="bubble-universe-bg" id="bubbleUniverseBg">
-                <svg class="lines-layer" id="bgLines">
-                    <defs id="bgGradDefs"></defs>
-                </svg>
-            </div>
-
-            <div class="history-title">Caixas de Resumos Salvos</div>
-            <div class="history-list-container" id="historyList">
-                <span style="font-size: 13px; color: #7f8c8d; text-align: center; padding: 20px 0;">Nenhum documento salvo ainda.</span>
-            </div>
-        </div>
     </div>
 
     <!-- Firebase SDKs -->
@@ -344,7 +318,6 @@
             if (user) {
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('appScreen').style.display = 'flex';
-                document.getElementById('historySidebar').style.display = 'flex';
                 document.getElementById('userEmailDisplay').textContent = `Logado como: ${user.email}`;
 
                 const historicoRef = ref(db, `historico_analises/${user.uid}`);
@@ -357,13 +330,12 @@
                         });
                         globalHistorico.reverse();
                     }
-                    renderizarHistoricoECosmos(globalHistorico);
+                    gerarFundoCosmosEstetico(globalHistorico.length);
                 });
 
             } else {
                 document.getElementById('authScreen').style.display = 'flex';
                 document.getElementById('appScreen').style.display = 'none';
-                document.getElementById('historySidebar').style.display = 'none';
             }
         });
 
@@ -430,7 +402,6 @@
                 iaResultado.textContent = data.resultado;
                 mainContainer.classList.add('expanded');
 
-                // Limpa o input e barra para ficar livre para buscas
                 inputArquivo.value = "";
                 fileName.textContent = "Anexar novo doc...";
                 fileName.style.color = "#7f8c8d";
@@ -458,100 +429,57 @@
                     resultado: ultimoResultadoAtual,
                     timestamp: serverTimestamp()
                 });
-                alert("Documento salvo nas caixas com sucesso!");
+                alert("Documento salvo com sucesso!");
             }
         }
 
-        // Renderiza tanto os cards funcionais quanto as bolinhas puramente estéticas no fundo
-        function renderizarHistoricoECosmos(lista) {
-            const historyList = document.getElementById('historyList');
-            const universeBg = document.getElementById('bubbleUniverseBg');
+        // Gera o fundo estético de bolinhas e linhas conectadas por todo o viewport
+        function gerarFundoCosmosEstetico(quantidadeDocs) {
+            const universe = document.getElementById('bgUniverse');
+            universe.querySelectorAll('.bg-circle-wrapper').forEach(el => el.remove());
             
-            // Remove apenas as bolinhas de fundo anteriores
-            universeBg.querySelectorAll('.bg-circle-wrapper').forEach(el => el.remove());
+            const linesLayer = document.getElementById('bgLines');
+            while (linesLayer.querySelectorAll('line').length > 0) linesLayer.removeChild(linesLayer.lastChild);
 
-            if (lista.length === 0) {
-                historyList.innerHTML = `<span style="font-size: 13px; color: #7f8c8d; text-align: center; padding: 20px 0;">Nenhum documento salvo ainda.</span>`;
-                return;
-            }
+            const totalBolinhas = Math.max(12, quantidadeDocs * 2);
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            let coords = [];
 
-            // 1. Renderiza os Cards Funcionais Clicáveis
-            let htmlCards = '';
-            lista.forEach(item => {
-                const dataFormatada = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Recente';
-                htmlCards += `
-                    <div class="history-card" onclick='abrirDocumentoSalvo(${JSON.stringify(item.nome_arquivo).replace(/'/g, "&#39;")}, ${JSON.stringify(item.resultado).replace(/'/g, "&#39;")})'>
-                        <div class="card-name">📄 ${item.nome_arquivo}</div>
-                        <div class="card-date">Salvo em: ${dataFormatada}</div>
-                    </div>
-                `;
-            });
-            historyList.innerHTML = htmlCards;
-
-            // 2. Renderiza as Bolinhas Estéticas de Background (Não Clicáveis)
-            const bgElements = [];
-            const width = universeBg.clientWidth || 300;
-            const height = universeBg.clientHeight || 480;
-
-            lista.forEach((item, index) => {
+            for (let i = 0; i < totalBolinhas; i++) {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('bg-circle-wrapper');
-                
-                const angle = index * 1.4;
-                const radius = Math.min(width, height) * 0.35 * Math.random() + 25;
-                const x = width / 2 + Math.cos(angle) * radius;
-                const y = height / 2 + Math.sin(angle) * radius;
 
-                wrapper.style.left = `${Math.max(25, Math.min(width - 25, x))}px`;
-                wrapper.style.top = `${Math.max(25, Math.min(height - 25, y))}px`;
+                const x = Math.random() * (w - 100) + 50;
+                const y = Math.random() * (h - 100) + 50;
+                wrapper.style.left = `${x}px`;
+                wrapper.style.top = `${y}px`;
 
                 const circle = document.createElement('div');
-                circle.classList.add('neon-circle-bg');
-                
+                circle.classList.add('neon-circle');
                 wrapper.appendChild(circle);
-                universeBg.appendChild(wrapper);
-                bgElements.push({ wrapper, circle });
-            });
+                universe.appendChild(wrapper);
 
-            desenharLinhasBackground(bgElements);
-        }
+                coords.push({ x, y });
+            }
 
-        function desenharLinhasBackground(elements) {
-            const linesLayer = document.getElementById('bgLines');
-            const defsLayer = document.getElementById('bgGradDefs');
-            while (linesLayer.querySelectorAll('line').length > 0) linesLayer.removeChild(linesLayer.lastChild);
-            defsLayer.innerHTML = '';
-
-            const universeBg = document.getElementById('bubbleUniverseBg');
-            const rectRef = universeBg.getBoundingClientRect();
-
-            for (let i = 0; i < elements.length; i++) {
-                for (let j = i + 1; j < elements.length; j++) {
-                    const b1 = elements[i];
-                    const b2 = elements[j];
-
-                    const r1 = b1.circle.getBoundingClientRect();
-                    const r2 = b2.circle.getBoundingClientRect();
-
-                    const x1 = r1.left - rectRef.left + (r1.width / 2);
-                    const y1 = r1.top - rectRef.top + (r1.height / 2);
-                    const x2 = r2.left - rectRef.left + (r2.width / 2);
-                    const y2 = r2.top - rectRef.top + (r2.height / 2);
-
-                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', x1);
-                    line.setAttribute('y1', y1);
-                    line.setAttribute('x2', x2);
-                    line.setAttribute('y2', y2);
-                    line.classList.add('connection-line');
-                    line.setAttribute('stroke', '#3498db');
-
-                    linesLayer.appendChild(line);
+            // Conecta as bolinhas com linhas estéticas no fundo
+            for (let i = 0; i < coords.length; i++) {
+                for (let j = i + 1; j < coords.length; j++) {
+                    const dist = Math.hypot(coords[i].x - coords[j].x, coords[i].y - coords[j].y);
+                    if (dist < 200) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', coords[i].x);
+                        line.setAttribute('y1', coords[i].y);
+                        line.setAttribute('x2', coords[j].x);
+                        line.setAttribute('y2', coords[j].y);
+                        line.classList.add('connection-line');
+                        linesLayer.appendChild(line);
+                    }
                 }
             }
         }
 
-        // Busca com opções exibidas ao lado/dropdown para clicar
         window.filtrarHistoricoBusca = function(termo) {
             const dropdown = document.getElementById('searchResultsDropdown');
             if (!termo || termo.trim() === "") {
