@@ -1,12 +1,11 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from google import genai
-from google.genai import types
 
 app = Flask(__name__)
 
-# Configura a API do Google GenAI com a chave do ambiente
-api_key = os.environ.get("GEMINI_API_KEY")
+# A chave da API será lida das variáveis de ambiente do Render
+api_key = os.environ.get("GEMIN_API_KEY") or os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
 @app.route("/")
@@ -15,35 +14,30 @@ def index():
 
 @app.route("/api/analisar", methods=["POST"])
 def analisar():
-    if "arquivo" not in request.files:
-        return jsonify({"error": "Nenhum arquivo enviado"}), 400
+    data = request.json
+    texto_doc = data.get("texto", "")
     
-    file = request.files["arquivo"]
-    
-    if file.filename == "":
-        return jsonify({"error": "Nome de arquivo inválido"}), 400
+    if not texto_doc:
+        return jsonify({"error": "Nenhum texto foi enviado."}), 400
 
     try:
-        file_bytes = file.read()
-        mime_type = file.content_type or "application/pdf"
+        # Chamada oficial da SDK do Google GenAI utilizando o modelo correto
+        prompt = (
+            "Você é um assistente especialista em classificação e tratamento de documentos. "
+            "Analise o texto abaixo e forneça: "
+            "1. Tipo/Classificação do Documento. "
+            "2. Principais Informações (Resumo executivo, datas, valores ou partes envolvidas). "
+            "3. Status de Tratamento (Recomendações ou pendências).\n\n"
+            f"Texto do documento:\n{texto_doc}"
+        )
 
-        # Chamada utilizando o SDK do Google GenAI com o modelo gemini-1.5-flash (mais estável)
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=[
-                types.Part.from_bytes(
-                    data=file_bytes,
-                    mime_type=mime_type,
-                ),
-                "Analise este documento. Faça uma classificação do tipo de documento e extraia as principais informações em tópicos claros (ex: Resumo, Dados Principais, Prazos/Valores se houver)."
-            ]
+            model='gemini-2.0-flash',
+            contents=prompt,
         )
 
         return jsonify({"resultado": response.text})
-
     except Exception as e:
-        # Imprime o erro completo no log do Render para auditoria
-        print(f"Erro interno no servidor: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
