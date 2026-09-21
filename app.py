@@ -5,12 +5,11 @@ import google.generativeai as genai
 
 app = Flask(__name__)
 
-# Configuração da chave de API do Gemini (substitua pela sua chave ou variável de ambiente)
-# Certifique-se de configurar sua chave de API corretamente
+# Configuração da chave de API do Gemini
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "SUA_CHAVE_API_AQUI")
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Configuração do modelo Gemini (utilizando o modelo multimodal moderno)
+# Configuração do modelo Gemini
 generation_config = {
     "temperature": 0.2,
     "top_p": 0.95,
@@ -19,7 +18,7 @@ generation_config = {
 }
 
 model = genai.GenerativeModel(
-    model_name="gemini-2.5-flash",
+    model_name="gemini-3.6-flash",
     generation_config=generation_config
 )
 
