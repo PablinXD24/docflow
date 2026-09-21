@@ -1,12 +1,13 @@
 import os
-import tempfile
 from flask import Flask, render_template, request, jsonify
 from google import genai
+from google.genai import types
+import io
 
 app = Flask(__name__)
 
-# Configura a chave da API do Google Gemini
-api_key = os.environ.get("GEMIN_API_KEY") or os.environ.get("GEMINI_API_KEY")
+# Configura a API do Google GenAI com a chave do ambiente
+api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
 @app.route("/")
@@ -15,58 +16,35 @@ def index():
 
 @app.route("/api/analisar", methods=["POST"])
 def analisar():
-    # Verifica se um arquivo foi enviado na requisição
-    if 'documento' not in request.files:
-        return jsonify({"error": "Nenhum arquivo foi enviado."}), 400
+    if "arquivo" not in request.files:
+        return jsonify({"error": "Nenhum arquivo enviado"}), 400
     
-    file = request.files['documento']
+    file = request.files["arquivo"]
     
-    if file.filename == '':
-        return jsonify({"error": "Nenhum arquivo selecionado."}), 400
-
-    temp_file_path = None
-    uploaded_file_ref = None
+    if file.filename == "":
+        return jsonify({"error": "Nome de arquivo inválido"}), 400
 
     try:
-        # Salva temporariamente no servidor para envio à API do Google
-        fd, temp_file_path = tempfile.mkstemp(suffix=os.path.splitext(file.filename)[1])
-        os.close(fd)
-        file.save(temp_file_path)
+        # Lê os bytes do arquivo enviado pelo usuário
+        file_bytes = file.read()
+        mime_type = file.content_type or "application/pdf"
 
-        # Faz o upload do arquivo para a API do Google (suporta PDF, imagens, etc.)
-        uploaded_file_ref = client.files.upload(file=temp_file_path)
-
-        # Prompt estruturado para extração das informações principais
-        prompt = (
-            "Você é um especialista em classificação e tratamento de documentos empresariais/legais. "
-            "Analise detalhadamente o documento anexado e forneça: "
-            "1. **Classificação/Tipo do Documento** (Ex: Contrato, Fatura, Relatório, RG, etc.). "
-            "2. **Principais Informações** (Resumo executivo, datas importantes, valores e partes envolvidas). "
-            "3. **Pendências ou Recomendações de Tratamento** (Próximos passos necessários)."
-        )
-
-        # Chamada ao modelo Gemini 2.5 Flash com suporte nativo a documentos
+        # Envia os bytes diretamente para o Gemini utilizando o tipo Part.from_bytes
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=[prompt, uploaded_file_ref]
+            model="gemini-3.6-flash",
+            contents=[
+                types.Part.from_bytes(
+                    data=file_bytes,
+                    mime_type=mime_type,
+                ),
+                "Analise este documento. Faça uma classificação do tipo de documento e extraia as principais informações em tópicos claros (ex: Resumo, Dados Principais, Prazos/Valores se houver)."
+            ]
         )
 
         return jsonify({"resultado": response.text})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-    finally:
-        # Limpeza de arquivos temporários locais
-        if temp_file_path and os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-        
-        # Limpeza opcional do arquivo na API do Google se necessário
-        if uploaded_file_ref:
-            try:
-                client.files.delete(name=uploaded_file_ref.name)
-            except:
-                pass
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
