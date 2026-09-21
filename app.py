@@ -1,45 +1,37 @@
 import os
-from flask import Flask, render_template, request, jsonify
-from google import genai
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+# Importe sua biblioteca do Gemini e configure aqui conforme seu código atual
 
 app = Flask(__name__)
+CORS(app)
 
-# A chave da API será lida das variáveis de ambiente do Render
-api_key = os.environ.get("GEMIN_API_KEY") or os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
-
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-@app.route("/api/analisar", methods=["POST"])
+@app.route('/api/analisar', methods=['POST'])
 def analisar():
-    data = request.json
-    texto_doc = data.get("texto", "")
-    
-    if not texto_doc:
-        return jsonify({"error": "Nenhum texto foi enviado."}), 400
-
     try:
-        # Chamada oficial da SDK do Google GenAI utilizando o modelo correto
-        prompt = (
-            "Você é um assistente especialista em classificação e tratamento de documentos. "
-            "Analise o texto abaixo e forneça: "
-            "1. Tipo/Classificação do Documento. "
-            "2. Principais Informações (Resumo executivo, datas, valores ou partes envolvidas). "
-            "3. Status de Tratamento (Recomendações ou pendências).\n\n"
-            f"Texto do documento:\n{texto_doc}"
-        )
+        # Verifica se o arquivo foi enviado na requisição
+        if 'file' not in request.files:
+            return jsonify({'error': 'Nenhum arquivo foi enviado'}), 400
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return jsonify({'error': 'Nome de arquivo inválido'}), 400
 
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=prompt,
-        )
+        # Aqui você lê o arquivo binário ou salva temporariamente para enviar ao Gemini
+        file_bytes = file.read()
 
-        return jsonify({"resultado": response.text})
+        # TODO: Adicione aqui a lógica de envio do arquivo para a API do Gemini
+        # Exemplo simulado de resposta de sucesso:
+        
+        return jsonify({
+            'status': 'sucesso',
+            'mensagem': 'Documento analisado com sucesso!',
+            'nome_arquivo': file.filename
+        }), 200
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
