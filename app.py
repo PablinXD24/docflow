@@ -29,7 +29,7 @@ def analisar():
         file_bytes = file.read()
         mime_type = file.content_type or 'application/pdf'
 
-        # Chamada para a API do Gemini utilizando o modelo gemini-3.6-flash exigido
+# Chamada para a API do Gemini solicitando texto limpo sem formatações Markdown
         response = client.models.generate_content(
             model='gemini-3.6-flash',
             contents=[
@@ -37,7 +37,7 @@ def analisar():
                     data=file_bytes,
                     mime_type=mime_type,
                 ),
-                'Analise este documento. Faça uma classificação do tipo de documento e extraia as principais informações em tópicos claros (Resumo, Dados Principais, Valores/Prazos se houver).'
+                'Analise este documento e extraia as principais informações (Resumo, Dados Principais, Valores e Prazos). IMPORTANTE: Responda em texto corrido ou tópicos simples, sem usar nenhum caractere de formatação markdown, sem asteriscos, sem negritos e sem hashtags.'
             ]
         )
 
