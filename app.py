@@ -27,9 +27,9 @@ def analisar():
         file_bytes = file.read()
         mime_type = file.content_type or "application/pdf"
 
-        # Chamada utilizando o SDK atualizado do Google GenAI
+        # Chamada utilizando o SDK do Google GenAI com o modelo gemini-1.5-flash (mais estável)
         response = client.models.generate_content(
-            model="gemini-3.6-flash",
+            model="gemini-1.5-flash",
             contents=[
                 types.Part.from_bytes(
                     data=file_bytes,
@@ -42,7 +42,7 @@ def analisar():
         return jsonify({"resultado": response.text})
 
     except Exception as e:
-        # Imprime o erro completo no log do Render para você conseguir inspecionar
+        # Imprime o erro completo no log do Render para auditoria
         print(f"Erro interno no servidor: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
