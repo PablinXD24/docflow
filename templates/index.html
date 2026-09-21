@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocFlow IA - Análise e Gestão de Documentos</title>
     <style>
-        /* ESTÉTICA LIQUID GLASS & BOLINHAS DE FUNDO PROPORCIONAIS */
+        /* ESTÉTICA LIQUID GLASS LIMPA */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { 
             background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
@@ -13,23 +13,6 @@
             overflow-x: hidden; position: relative;
         }
 
-        /* CAMADA DE FUNDO COM BOLINHAS LIGADAS REPRESENTANDO OS DOCUMENTOS */
-        #bgUniverse {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 0; overflow: hidden;
-        }
-        .lines-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .connection-line { fill: none; stroke: rgba(52, 152, 219, 0.35); stroke-width: 1.5px; stroke-linecap: round; }
-
-        .bg-circle-wrapper { position: absolute; width: 28px; height: 28px; transform: translate(-50%, -50%); }
-        .neon-circle { 
-            width: 100%; height: 100%; border-radius: 50%; 
-            background: rgba(52, 152, 219, 0.7); box-shadow: 0 0 12px rgba(52, 152, 219, 0.5); 
-            animation: floatVertical 5s ease-in-out infinite;
-            display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 700;
-        }
-        @keyframes floatVertical { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
-        
         .main-wrapper { display: flex; gap: 20px; width: 100%; max-width: 800px; justify-content: center; align-items: flex-start; z-index: 10; }
 
         .smart-container { 
@@ -87,18 +70,22 @@
 
         .search-input { width: 100%; background: transparent; border: none; outline: none; font-size: 14px; color: #2c3e50; }
         
-        /* Dropdown de Opções de Busca */
+        /* IDEIA DE VISUALIZAÇÃO: Painel de Resultados de Busca Estilo Card / Modal Dropdown */
         .search-results-dropdown {
-            position: absolute; top: 110%; right: 0; width: 50%; max-height: 220px; overflow-y: auto;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            display: none; flex-direction: column; gap: 6px; padding: 10px; z-index: 100;
+            position: absolute; top: 110%; right: 0; width: 100%; max-height: 280px; overflow-y: auto;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            display: none; flex-direction: column; gap: 8px; padding: 12px; z-index: 100;
         }
+        .search-dropdown-header { font-size: 11px; font-weight: 700; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 4px; }
         .search-result-item {
-            padding: 8px 12px; background: rgba(240, 245, 250, 0.7); border-radius: 8px; cursor: pointer;
-            font-size: 13px; color: #2c3e50; font-weight: 600; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            padding: 10px 12px; background: rgba(240, 245, 250, 0.8); border-radius: 10px; cursor: pointer;
+            font-size: 13px; color: #2c3e50; font-weight: 600; transition: 0.2s; display: flex; flex-direction: column; gap: 2px;
+            border: 1px solid transparent;
         }
-        .search-result-item:hover { background: #3498db; color: white; }
+        .search-result-item:hover { background: #3498db; color: white; border-color: #2980b9; }
+        .search-result-item:hover .search-item-snippet { color: rgba(255,255,255,0.85); }
+        .search-item-snippet { font-size: 11px; font-weight: 400; color: #7f8c8d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .action-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 4px; }
         .status-text { font-size: 13px; color: #3498db; font-weight: 500; opacity: 0; display: flex; align-items: center; gap: 8px; margin-right: auto; }
@@ -132,13 +119,6 @@
 </head>
 <body tabindex="0">
 
-    <!-- UNIVERSO DE BOLINHAS ESTÉTICAS NO FUNDO (BASEADO NOS DOCUMENTOS SALVOS) -->
-    <div id="bgUniverse">
-        <svg class="lines-layer" id="bgLines">
-            <defs id="bgGradDefs"></defs>
-        </svg>
-    </div>
-
     <div class="main-wrapper">
         <div class="smart-container" id="mainContainer">
             
@@ -147,7 +127,7 @@
                 <h1 class="auth-title" id="authTitle">Bem-vindo ao DocFlow IA</h1>
                 <p class="auth-subtitle" id="authSubtitle">Faça login para continuar</p>
                 
-                <input type="email" id="emailInput" class="auth-input" placeholder="Sua e-mail">
+                <input type="email" id="emailInput" class="auth-input" placeholder="Seu e-mail">
                 <input type="password" id="passwordInput" class="auth-input" placeholder="Sua senha">
                 
                 <button id="authBtn" class="btn-primary" onclick="handleAuth()">Entrar</button>
@@ -191,9 +171,9 @@
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#7f8c8d" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                             </svg>
-                            <input type="text" id="searchInput" class="search-input" placeholder="Buscar por Nome, CPF, CNPJ..." oninput="filtrarHistoricoBusca(this.value)">
+                            <input type="text" id="searchInput" class="search-input" placeholder="Buscar por Nome, CPF, CNPJ..." onfocus="mostrarHistoricoCompleto()" oninput="filtrarHistoricoBusca(this.value)">
                             
-                            <!-- Dropdown de opções correspondentes ao lado -->
+                            <!-- Dropdown Inteligente de Busca e Visualização -->
                             <div id="searchResultsDropdown" class="search-results-dropdown"></div>
                         </div>
                     </div>
@@ -223,7 +203,7 @@
 
                     <!-- Sidebar de Compartilhamento e Ações -->
                     <div class="share-sidebar">
-                        <button class="share-btn save-box" onclick="salvarNasCaixas()" title="Enviar para as Caixas (Salvar)">
+                        <button class="share-btn save-box" onclick="salvarNasCaixas()" title="Salvar no Histórico">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                         </button>
                         <button class="share-btn whatsapp" onclick="compartilharWhatsApp()" title="WhatsApp">
@@ -331,14 +311,11 @@
                         });
                         globalHistorico.reverse();
                     }
-                    // Gera exatamente uma bolinha por documento salvo
-                    gerarFundoCosmosEstetico(globalHistorico.length);
                 });
 
             } else {
                 document.getElementById('authScreen').style.display = 'flex';
                 document.getElementById('appScreen').style.display = 'none';
-                gerarFundoCosmosEstetico(0);
             }
         });
 
@@ -436,57 +413,15 @@
             }
         }
 
-        // Gera o número exato de bolinhas correspondente à quantidade de documentos salvos
-        function gerarFundoCosmosEstetico(quantidadeDocs) {
-            const universe = document.getElementById('bgUniverse');
-            universe.querySelectorAll('.bg-circle-wrapper').forEach(el => el.remove());
-            
-            const linesLayer = document.getElementById('bgLines');
-            while (linesLayer.querySelectorAll('line').length > 0) linesLayer.removeChild(linesLayer.lastChild);
-
-            if (quantidadeDocs <= 0) return;
-
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            let coords = [];
-
-            for (let i = 0; i < quantidadeDocs; i++) {
-                const wrapper = document.createElement('div');
-                wrapper.classList.add('bg-circle-wrapper');
-
-                const x = Math.random() * (w - 120) + 60;
-                const y = Math.random() * (h - 120) + 60;
-                wrapper.style.left = `${x}px`;
-                wrapper.style.top = `${y}px`;
-
-                const circle = document.createElement('div');
-                circle.classList.add('neon-circle');
-                circle.innerText = (i + 1);
-                wrapper.appendChild(circle);
-                universe.appendChild(wrapper);
-
-                coords.push({ x, y });
-            }
-
-            // Conecta as bolinhas dos documentos salvos com linhas estéticas no fundo
-            for (let i = 0; i < coords.length; i++) {
-                for (let j = i + 1; j < coords.length; j++) {
-                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', coords[i].x);
-                    line.setAttribute('y1', coords[i].y);
-                    line.setAttribute('x2', coords[j].x);
-                    line.setAttribute('y2', coords[j].y);
-                    line.classList.add('connection-line');
-                    linesLayer.appendChild(line);
-                }
-            }
+        // Ideia de Visualização: Mostra todos os docs salvos ao focar na busca
+        window.mostrarHistoricoCompleto = function() {
+            renderizarDropdownResultados(globalHistorico, "Documentos Recentes Salvos");
         }
 
+        // Ideia de Busca Inteligente por Nome, CPF, CNPJ ou conteúdo
         window.filtrarHistoricoBusca = function(termo) {
-            const dropdown = document.getElementById('searchResultsDropdown');
             if (!termo || termo.trim() === "") {
-                dropdown.style.display = 'none';
-                dropdown.innerHTML = '';
+                mostrarHistoricoCompleto();
                 return;
             }
 
@@ -496,23 +431,39 @@
                 item.resultado.toLowerCase().includes(termoLower)
             );
 
-            if (filtrados.length === 0) {
+            renderizarDropdownResultados(filtrados, `Resultados para "${termo}"`);
+        }
+
+        function renderizarDropdownResultados(lista, tituloHeader) {
+            const dropdown = document.getElementById('searchResultsDropdown');
+            if (lista.length === 0) {
                 dropdown.style.display = 'flex';
-                dropdown.innerHTML = '<div style="padding: 8px; font-size:12px; color:#7f8c8d;">Nenhum documento encontrado.</div>';
+                dropdown.innerHTML = `<div class="search-dropdown-header">${tituloHeader}</div><div style="padding: 10px; font-size:12px; color:#7f8c8d; text-align:center;">Nenhum documento encontrado.</div>`;
                 return;
             }
 
-            let html = '';
-            filtrados.forEach(item => {
+            let html = `<div class="search-dropdown-header">${tituloHeader}</div>`;
+            lista.forEach(item => {
+                const snippetResumo = item.resultado.replace(/\n/g, ' ').slice(0, 70) + '...';
                 html += `
                     <div class="search-result-item" onclick='selecionarDocumentoBusca(${JSON.stringify(item.nome_arquivo).replace(/'/g, "&#39;")}, ${JSON.stringify(item.resultado).replace(/'/g, "&#39;")})'>
-                        📄 ${item.nome_arquivo}
+                        <span>📄 ${item.nome_arquivo}</span>
+                        <span class="search-item-snippet">${snippetResumo}</span>
                     </div>
                 `;
             });
             dropdown.innerHTML = html;
             dropdown.style.display = 'flex';
         }
+
+        // Fecha o dropdown se clicar fora
+        document.addEventListener('click', function(e) {
+            const searchInput = document.getElementById('searchInput');
+            const dropdown = document.getElementById('searchResultsDropdown');
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
 
         window.selecionarDocumentoBusca = function(nome, resultado) {
             abrirDocumentoSalvo(nome, resultado);
