@@ -26,14 +26,12 @@
             gap: 24px;
         }
 
-        /* Header e Autenticação */
         .app-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
         .logo-area { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .user-info { font-size: 13px; color: #94a3b8; display: flex; gap: 15px; align-items: center; }
         .btn-logout { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.2s; }
         .btn-logout:hover { background: #ef4444; color: white; }
 
-        /* Tela de Autenticação */
         .auth-box { max-width: 400px; margin: 80px auto; width: 100%; background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 16px; text-align: center; }
         .auth-input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 14px; outline: none; }
         .auth-input:focus { border-color: #38bdf8; }
@@ -43,7 +41,6 @@
         .auth-switch { font-size: 13px; color: #94a3b8; cursor: pointer; }
         .auth-switch span { color: #38bdf8; font-weight: 600; }
 
-        /* Seleção de Filmes */
         .section-title { font-size: 16px; font-weight: 700; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
         
         .selected-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
@@ -58,7 +55,6 @@
         .slot-remove { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; z-index: 5; font-size: 12px; display: flex; align-items: center; justify-content: center; }
         .slot-placeholder { font-size: 12px; color: #64748b; font-weight: 500; }
 
-        /* Barra de Pesquisa de Filmes */
         .search-container { position: relative; width: 100%; }
         .search-input { width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 15px; outline: none; }
         .search-input:focus { border-color: #38bdf8; }
@@ -77,13 +73,11 @@
         .search-item-title { font-size: 14px; font-weight: 600; color: #f8fafc; }
         .search-item-year { font-size: 11px; color: #94a3b8; }
 
-        /* Botão Enviar para IA */
         .action-row { display: flex; justify-content: flex-end; margin-top: 10px; }
         .btn-generate { background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; opacity: 0.5; pointer-events: none; }
         .btn-generate.active { opacity: 1; pointer-events: auto; }
         .btn-generate:hover { transform: scale(1.02); }
 
-        /* Área de Recomendações (Pôsteres) */
         .results-section { display: none; flex-direction: column; gap: 16px; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; }
         .posters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
         .movie-card { background: #0f172a; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; transition: 0.3s; }
@@ -100,7 +94,6 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN / AUTENTICAÇÃO -->
     <div id="authScreen" class="auth-box">
         <h2 id="authTitle" style="color: #f8fafc;">CineMatch IA</h2>
         <p id="authSubtitle" style="font-size: 13px; color: #94a3b8;">Entre para descobrir recomendações</p>
@@ -120,7 +113,6 @@
         <div id="authError" style="color: #ef4444; font-size: 12px;"></div>
     </div>
 
-    <!-- APLICATIVO PRINCIPAL -->
     <div id="appScreen" class="main-wrapper" style="display: none;">
         <div class="smart-container">
             <div class="app-header">
@@ -131,7 +123,6 @@
                 </div>
             </div>
 
-            <!-- Seleção de Filmes -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <div class="section-title">
                     <span>1. Selecione 3 Filmes Favoritos (<span id="countSelected">0</span>/3)</span>
@@ -144,11 +135,10 @@
                 </div>
             </div>
 
-            <!-- Barra de Pesquisa Instantânea via TMDb direto no Front-end -->
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <div class="section-title"><span>Buscar Filme na Biblioteca</span></div>
                 <div class="search-container">
-                    <input type="text" id="searchInput" class="search-input" placeholder="Digite o nome de um filme (ex: Interestelar, Matrix...)" oninput="pesquisarFilmesTMDb(this.value)" autocomplete="off">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Digite o nome de um filme (ex: Interestelar, Matrix...)" oninput="pesquisarFilmes(this.value)" autocomplete="off">
                     <div id="searchDropdown" class="search-dropdown"></div>
                 </div>
             </div>
@@ -161,7 +151,6 @@
                 <div class="spinner"></div> Analisando seus gostos e buscando os pôsteres recomendados...
             </div>
 
-            <!-- Resultados de Recomendações em Pôsteres -->
             <div id="resultsSection" class="results-section">
                 <div class="section-title"><span>✦ Filmes Recomendados para Você</span></div>
                 <div id="postersGrid" class="posters-grid"></div>
@@ -169,7 +158,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
@@ -188,10 +176,6 @@
 
         let isRegistering = false;
         window.filmesSelecionados = [];
-
-        // Constantes da API TMDb para uso direto no client-side
-        const TMDB_API_KEY = "1f54bd990f1cdfb230adb312546d665d";
-        const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
         window.toggleAuthMode = function() {
             isRegistering = !isRegistering;
@@ -235,48 +219,31 @@
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('appScreen').style.display = 'flex';
                 document.getElementById('userEmailDisplay').textContent = user.email;
-                carregarFilmesIniciaisTMDb();
+                carregarFilmesIniciais();
             } else {
                 document.getElementById('authScreen').style.display = 'flex';
                 document.getElementById('appScreen').style.display = 'none';
             }
         });
 
-        // Pesquisa e Biblioteca de Filmes Integradas Diretamente no Index
         let timeoutId = null;
-        window.pesquisarFilmesTMDb = function(termo) {
+        window.pesquisarFilmes = function(termo) {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(async () => {
                 const dropdown = document.getElementById('searchDropdown');
-                let url = '';
-                if (!termo || termo.trim() === '') {
-                    url = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=pt-BR&page=1`;
-                } else {
-                    url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(termo)}&page=1`;
-                }
-
                 try {
-                    const res = await fetch(url);
+                    const res = await fetch(`/api/filmes/buscar?q=${encodeURIComponent(termo)}`);
                     const data = await res.json();
                     
                     if (data.results && data.results.length > 0) {
                         let html = '';
-                        data.results.forEach(item => {
-                            const poster_path = item.poster_path;
-                            const poster_url = poster_path ? `${TMDB_IMAGE_BASE}${poster_path}` : 'https://via.placeholder.com/500x750?text=Sem+Poster';
-                            const filmeObj = {
-                                id: item.id,
-                                title: item.title,
-                                release_date: (item.release_date || '').substring(0, 4),
-                                poster_url: poster_url
-                            };
-
+                        data.results.forEach(f => {
                             html += `
-                                <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(filmeObj)})'>
-                                    <img src="${filmeObj.poster_url}" alt="${filmeObj.title}">
+                                <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(f).replace(/'/g, "&#39;")})'>
+                                    <img src="${f.poster_url}" alt="${f.title}">
                                     <div class="search-item-info">
-                                        <span class="search-item-title">${filmeObj.title}</span>
-                                        <span class="search-item-year">${filmeObj.release_date || 'N/A'}</span>
+                                        <span class="search-item-title">${f.title}</span>
+                                        <span class="search-item-year">${f.release_date || 'N/A'}</span>
                                     </div>
                                 </div>
                             `;
@@ -293,28 +260,19 @@
             }, 250);
         }
 
-        async function carregarFilmesIniciaisTMDb() {
+        async function carregarFilmesIniciais() {
             try {
-                const res = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=pt-BR&page=1`);
+                const res = await fetch('/api/filmes/buscar?q=');
                 const data = await res.json();
                 if (data.results) {
                     let html = '';
-                    data.results.slice(0, 8).forEach(item => {
-                        const poster_path = item.poster_path;
-                        const poster_url = poster_path ? `${TMDB_IMAGE_BASE}${poster_path}` : 'https://via.placeholder.com/500x750?text=Sem+Poster';
-                        const filmeObj = {
-                            id: item.id,
-                            title: item.title,
-                            release_date: (item.release_date || '').substring(0, 4),
-                            poster_url: poster_url
-                        };
-
+                    data.results.slice(0, 8).forEach(f => {
                         html += `
-                            <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(filmeObj)})'>
-                                <img src="${filmeObj.poster_url}" alt="${filmeObj.title}">
+                            <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(f).replace(/'/g, "&#39;")})'>
+                                <img src="${f.poster_url}" alt="${f.title}">
                                 <div class="search-item-info">
-                                    <span class="search-item-title">${filmeObj.title}</span>
-                                    <span class="search-item-year">${filmeObj.release_date || 'N/A'}</span>
+                                    <span class="search-item-title">${f.title}</span>
+                                    <span class="search-item-year">${f.release_date || 'N/A'}</span>
                                 </div>
                             </div>
                         `;
@@ -384,7 +342,6 @@
             postersGrid.innerHTML = '';
 
             try {
-                // 1. Pede recomendação textual para o Flask/Gemini
                 const response = await fetch('/api/recomendar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -395,30 +352,17 @@
                 if (!response.ok) throw new Error(data.error || 'Erro ao gerar recomendações');
 
                 let html = '';
-                // 2. Para cada recomendação da IA, buscamos o pôster oficial diretamente no TMDb via JavaScript
-                for (let rec of data.recomendacoes) {
-                    let posterUrl = 'https://via.placeholder.com/500x750?text=Poster+Indisponivel';
-                    try {
-                        const tmdbRes = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(rec.titulo)}`);
-                        const tmdbData = await tmdbRes.json();
-                        if (tmdbData.results && tmdbData.results.length > 0 && tmdbData.results[0].poster_path) {
-                            posterUrl = `${TMDB_IMAGE_BASE}${tmdbData.results[0].poster_path}`;
-                        }
-                    } catch (err) {
-                        console.error("Erro ao buscar pôster:", err);
-                    }
-
+                data.recomendacoes.forEach(rec => {
                     html += `
                         <div class="movie-card">
-                            <img src="${posterUrl}" alt="${rec.titulo}">
+                            <img src="${rec.poster_url}" alt="${rec.titulo}">
                             <div class="movie-card-content">
                                 <div class="movie-card-title">${rec.titulo}</div>
                                 <div class="movie-card-reason">${rec.motivo}</div>
                             </div>
                         </div>
                     `;
-                }
-
+                });
                 postersGrid.innerHTML = html;
                 resultsSection.style.display = 'flex';
             } catch (e) {
@@ -428,7 +372,6 @@
             }
         }
 
-        // Fechar dropdown ao clicar fora
         document.addEventListener('click', function(e) {
             const container = document.querySelector('.search-container');
             if (!container.contains(e.target)) {
@@ -438,7 +381,7 @@
 
         document.getElementById('searchInput').addEventListener('focus', function() {
             if (this.value.trim() === '') {
-                carregarFilmesIniciaisTMDb();
+                carregarFilmesIniciais();
             }
             document.getElementById('searchDropdown').style.display = 'flex';
         });
