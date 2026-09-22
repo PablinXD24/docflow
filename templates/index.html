@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { 
-            background: linear-gradient(135deg, #0f172a 1e-02%, #1e1b4b 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
             min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; color: #f8fafc;
         }
 
@@ -144,11 +144,11 @@
                 </div>
             </div>
 
-            <!-- Barra de Pesquisa Instantânea -->
+            <!-- Barra de Pesquisa Instantânea via TMDb direto no Front-end -->
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <div class="section-title"><span>Buscar Filme na Biblioteca</span></div>
                 <div class="search-container">
-                    <input type="text" id="searchInput" class="search-input" placeholder="Digite o nome de um filme (ex: Interestelar, Matrix...)" oninput="pesquisarFilmes(this.value)" autocomplete="off">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Digite o nome de um filme (ex: Interestelar, Matrix...)" oninput="pesquisarFilmesTMDb(this.value)" autocomplete="off">
                     <div id="searchDropdown" class="search-dropdown"></div>
                 </div>
             </div>
@@ -158,7 +158,7 @@
             </div>
 
             <div id="spinnerContainer" class="spinner-container">
-                <div class="spinner"></div> Analisando seus gostos e selecionando os melhores pôsteres...
+                <div class="spinner"></div> Analisando seus gostos e buscando os pôsteres recomendados...
             </div>
 
             <!-- Resultados de Recomendações em Pôsteres -->
@@ -188,6 +188,10 @@
 
         let isRegistering = false;
         window.filmesSelecionados = [];
+
+        // Constantes da API TMDb para uso direto no client-side
+        const TMDB_API_KEY = "1f54bd990f1cdfb230adb312546d665d";
+        const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
         window.toggleAuthMode = function() {
             isRegistering = !isRegistering;
@@ -231,32 +235,48 @@
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('appScreen').style.display = 'flex';
                 document.getElementById('userEmailDisplay').textContent = user.email;
-                carregarFilmesIniciais();
+                carregarFilmesIniciaisTMDb();
             } else {
                 document.getElementById('authScreen').style.display = 'flex';
                 document.getElementById('appScreen').style.display = 'none';
             }
         });
 
-        // Função de Pesquisa Instantânea ao Digitar
+        // Pesquisa e Biblioteca de Filmes Integradas Diretamente no Index
         let timeoutId = null;
-        window.pesquisarFilmes = function(termo) {
+        window.pesquisarFilmesTMDb = function(termo) {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(async () => {
                 const dropdown = document.getElementById('searchDropdown');
+                let url = '';
+                if (!termo || termo.trim() === '') {
+                    url = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=pt-BR&page=1`;
+                } else {
+                    url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(termo)}&page=1`;
+                }
+
                 try {
-                    const res = await fetch(`/api/filmes/buscar?q=${encodeURIComponent(termo)}`);
+                    const res = await fetch(url);
                     const data = await res.json();
                     
                     if (data.results && data.results.length > 0) {
                         let html = '';
-                        data.results.forEach(f => {
+                        data.results.forEach(item => {
+                            const poster_path = item.poster_path;
+                            const poster_url = poster_path ? `${TMDB_IMAGE_BASE}${poster_path}` : 'https://via.placeholder.com/500x750?text=Sem+Poster';
+                            const filmeObj = {
+                                id: item.id,
+                                title: item.title,
+                                release_date: (item.release_date || '').substring(0, 4),
+                                poster_url: poster_url
+                            };
+
                             html += `
-                                <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(f).replace(/'/g, "&#39;")})'>
-                                    <img src="${f.poster_url}" alt="${f.title}">
+                                <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(filmeObj)})'>
+                                    <img src="${filmeObj.poster_url}" alt="${filmeObj.title}">
                                     <div class="search-item-info">
-                                        <span class="search-item-title">${f.title}</span>
-                                        <span class="search-item-year">${f.release_date || 'N/A'}</span>
+                                        <span class="search-item-title">${filmeObj.title}</span>
+                                        <span class="search-item-year">${filmeObj.release_date || 'N/A'}</span>
                                     </div>
                                 </div>
                             `;
@@ -273,19 +293,28 @@
             }, 250);
         }
 
-        async function carregarFilmesIniciais() {
+        async function carregarFilmesIniciaisTMDb() {
             try {
-                const res = await fetch('/api/filmes/buscar?q=');
+                const res = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=pt-BR&page=1`);
                 const data = await res.json();
                 if (data.results) {
                     let html = '';
-                    data.results.slice(0, 8).forEach(f => {
+                    data.results.slice(0, 8).forEach(item => {
+                        const poster_path = item.poster_path;
+                        const poster_url = poster_path ? `${TMDB_IMAGE_BASE}${poster_path}` : 'https://via.placeholder.com/500x750?text=Sem+Poster';
+                        const filmeObj = {
+                            id: item.id,
+                            title: item.title,
+                            release_date: (item.release_date || '').substring(0, 4),
+                            poster_url: poster_url
+                        };
+
                         html += `
-                            <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(f).replace(/'/g, "&#39;")})'>
-                                <img src="${f.poster_url}" alt="${f.title}">
+                            <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(filmeObj)})'>
+                                <img src="${filmeObj.poster_url}" alt="${filmeObj.title}">
                                 <div class="search-item-info">
-                                    <span class="search-item-title">${f.title}</span>
-                                    <span class="search-item-year">${f.release_date || 'N/A'}</span>
+                                    <span class="search-item-title">${filmeObj.title}</span>
+                                    <span class="search-item-year">${filmeObj.release_date || 'N/A'}</span>
                                 </div>
                             </div>
                         `;
@@ -355,6 +384,7 @@
             postersGrid.innerHTML = '';
 
             try {
+                // 1. Pede recomendação textual para o Flask/Gemini
                 const response = await fetch('/api/recomendar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -365,17 +395,30 @@
                 if (!response.ok) throw new Error(data.error || 'Erro ao gerar recomendações');
 
                 let html = '';
-                data.recomendacoes.forEach(rec => {
+                // 2. Para cada recomendação da IA, buscamos o pôster oficial diretamente no TMDb via JavaScript
+                for (let rec of data.recomendacoes) {
+                    let posterUrl = 'https://via.placeholder.com/500x750?text=Poster+Indisponivel';
+                    try {
+                        const tmdbRes = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(rec.titulo)}`);
+                        const tmdbData = await tmdbRes.json();
+                        if (tmdbData.results && tmdbData.results.length > 0 && tmdbData.results[0].poster_path) {
+                            posterUrl = `${TMDB_IMAGE_BASE}${tmdbData.results[0].poster_path}`;
+                        }
+                    } catch (err) {
+                        console.error("Erro ao buscar pôster:", err);
+                    }
+
                     html += `
                         <div class="movie-card">
-                            <img src="${rec.poster_url}" alt="${rec.titulo}">
+                            <img src="${posterUrl}" alt="${rec.titulo}">
                             <div class="movie-card-content">
                                 <div class="movie-card-title">${rec.titulo}</div>
                                 <div class="movie-card-reason">${rec.motivo}</div>
                             </div>
                         </div>
                     `;
-                });
+                }
+
                 postersGrid.innerHTML = html;
                 resultsSection.style.display = 'flex';
             } catch (e) {
@@ -395,7 +438,7 @@
 
         document.getElementById('searchInput').addEventListener('focus', function() {
             if (this.value.trim() === '') {
-                carregarFilmesIniciais();
+                carregarFilmesIniciaisTMDb();
             }
             document.getElementById('searchDropdown').style.display = 'flex';
         });
