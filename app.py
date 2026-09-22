@@ -1,159 +1,118 @@
 import os
 import requests
 from flask import Flask, render_template, request, jsonify
+from werkzeug.utils import secure_filename
 import google.generativeai as genai
 
 app = Flask(__name__)
 
-# Lê a chave de ambiente e remove espaços acidentais
+# Configuração da Chave Gemini
 GEMINI_API_KEY = (os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or "").strip()
-
-if not GEMINI_API_KEY:
-    print("AVISO: Chave de API do Gemini não encontrada nas variáveis de ambiente!")
-else:
-    print(f"Chave carregada com sucesso (Inicia com: {GEMINI_API_KEY[:6]}...)")
-
-genai.configure(api_key=GEMINI_API_KEY)
-
-# Configuração do modelo Gemini
-generation_config = {
-    "temperature": 0.4,
-    "top_p": 0.95,
-    "top_k": 40,
-    "max_output_tokens": 2048,
-}
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 model = genai.GenerativeModel(
     model_name="gemini-1.5-flash",
-    generation_config=generation_config
+    generation_config={"temperature": 0.7, "max_output_tokens": 2048}
 )
 
-# Chave pública do TMDb configurada para demonstração robusta do catálogo de filmes
-TMDB_API_KEY = "c121404c50117466133177651c6c06fa" 
+# Chave e Endpoints do TMDb (The Movie Database) para Busca de Filmes
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "1f54bd990f1cdfb230adb312546d665d") # Chave pública padrão de testes
+TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/api/filmes/populares', methods=['GET'])
-def buscar_filmes_populares():
-    """Busca filmes populares e em alta na API do TMDb"""
-    try:
-        url = f"https://api.themoviedb.org/3/movie/popular?api_key={TMDB_API_KEY}&language=pt-BR&page=1"
-        response = requests.get(url, timeout=10)
-        data = response.json()
-        
-        filmes = []
-        if 'results' in data:
-            for item in data['results']:
-                poster_path = item.get('poster_path')
-                poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else "https://placehold.co/500x750/1a1a1a/ffffff?text=Sem+Poster"
-                filmes.append({
-                    'id': item.get('id'),
-                    'title': item.get('title'),
-                    'overview': item.get('overview', 'Sem sinopse disponível.'),
-                    'release_date': item.get('release_date', ''),
-                    'vote_average': item.get('vote_average', 0),
-                    'poster_path': poster_url
-                })
-        return jsonify({'filmes': filmes})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/api/filmes/buscar', methods=['GET'])
-def pesquisar_filmes():
-    """Pesquisa filmes no TMDb por termo"""
-    query = request.args.get('q', '')
+def buscar_filmes():
+    query = request.args.get('q', '').strip()
     if not query:
-        return jsonify({'filmes': []})
-    try:
+        # Se não houver termo digitado, retorna os filmes populares do momento
+        url = f"https://api.themoviedb.org/3/movie/popular?api_key={TMDB_API_KEY}&language=pt-BR&page=1"
+    else:
+        # Pesquisa personalizada por nome do filme
         url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&language=pt-BR&query={requests.utils.quote(query)}&page=1"
+    
+    try:
         response = requests.get(url, timeout=10)
         data = response.json()
-        
-        filmes = []
-        if 'results' in data:
-            for item in data['results']:
-                poster_path = item.get('poster_path')
-                poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else "https://placehold.co/500x750/1a1a1a/ffffff?text=Sem+Poster"
-                filmes.append({
-                    'id': item.get('id'),
-                    'title': item.get('title'),
-                    'overview': item.get('overview', 'Sem sinopse disponível.'),
-                    'release_date': item.get('release_date', ''),
-                    'vote_average': item.get('vote_average', 0),
-                    'poster_path': poster_url
-                })
-        return jsonify({'filmes': filmes})
+        resultados = []
+        for item in data.get('results', []):
+            poster_path = item.get('poster_path')
+            poster_url = f"{TMDB_IMAGE_BASE}{poster_path}" if poster_path else "https://via.placeholder.com/500x750?text=Sem+Poster"
+            resultados.append({
+                'id': item.get('id'),
+                'title': item.get('title'),
+                'release_date': item.get('release_date', '')[:4],
+                'poster_url': poster_url,
+                'overview': item.get('overview', '')
+            })
+        return jsonify({'results': resultados})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/recomendar', methods=['POST'])
-def gerar_recomendacoes():
-    """Recebe exatamente 3 filmes escolhidos e usa a IA para gerar 5 recomendações personalizadas com cartazes"""
-    dados = request.get_json()
+def recomendar_filmes():
+    dados = request.get_json() or {}
     filmes_escolhidos = dados.get('filmes', [])
     
-    if len(filmes_escolhidos) != 3:
-        return jsonify({'error': 'Você deve selecionar exatamente 3 filmes.'}), 400
-    
-    titulos = [f['title'] for f in filmes_escolhidos]
+    if len(filmes_escolhidos) < 3:
+        return jsonify({'error': 'Selecione exatamente 3 filmes.'}), 400
+        
+    nomes_filmes = [f['title'] for f in filmes_escolhidos]
     
     prompt = (
-        f"O usuário escolheu os seguintes 3 filmes favoritos: {titulos[0]}, {titulos[1]} e {titulos[2]}. "
-        "Com base no estilo, gênero, diretores, tom e temática desses 3 filmes, atue como um crítico de cinema especialista e "
-        "recomende exatamente 5 novos filmes imperdíveis para ele assistir.\n\n"
-        "OBRIGATÓRIO: Responda estritamente no seguinte formato JSON puro (sem marcações de markdown externas além do JSON, sem texto livre fora do JSON):\n"
-        "{\n"
-        '  "analise_perfil": "Breve parágrafo analítico explicando o porquê da seleção combinada destes 3 filmes.",\n'
-        '  "recomendacoes": [\n'
-        "    {\n"
-        '      "titulo": "Nome Exato do Filme Recomendado",\n'
-        '      "motivo": "Por que o usuário vai gostar com base nos seus favoritos",\n'
-        '      "genero": "Gêneros principais",\n'
-        '      "ano": "Ano de lançamento"\n'
-        "    }\n"
-        "  ]\n"
-        "}"
+        f"O usuário escolheu os seguintes 3 filmes favoritos: {', '.join(nomes_filmes)}. "
+        "Com base no estilo, gênero, diretores e temática desses filmes, atue como um especialista em cinema "
+        "e indique exatamente 5 novos filmes recomendados. "
+        "Retorne sua resposta estritamente no formato JSON puro (sem marcação markdown extra se possível, ou em um bloco limpo) contendo uma lista com os objetos no seguinte formato exato para cada recomendação:\n"
+        "[\n"
+        "  {\"titulo\": \"Nome do Filme 1\", \"motivo\": \"Breve explicação do porquê foi recomendado\"},\n"
+        "  ...\n"
+        "]"
     )
     
     try:
         response = model.generate_content(prompt)
         texto_resposta = response.text.strip()
         
-        # Limpeza caso o modelo adicione blocos ```json ... ```
-        if texto_resposta.startswith("```json"):
-            texto_resposta = texto_resposta[7:]
-        if texto_resposta.endswith("```"):
-            texto_resposta = texto_resposta[:-3]
+        # Limpeza caso o modelo retorne blocos markdown ```json ... ```
+        if texto_resposta.startswith("```"):
+            texto_resposta = texto_resposta.split("```")[1]
+            if texto_resposta.startswith("json"):
+                texto_resposta = texto_resposta[4:]
         texto_resposta = texto_resposta.strip()
         
         import json
-        resultado_json = json.loads(texto_resposta)
+        recomendacoes_ia = json.loads(texto_resposta)
         
-        # Para cada filme recomendado pela IA, buscamos o pôster oficial correspondente no TMDb
-        for rec in resultado_json.get('recomendacoes', []):
-            titulo_busca = rec['titulo']
+        # Para cada recomendação da IA, buscamos o pôster oficial correspondente via TMDb
+        recomendacoes_finais = []
+        for rec in recomendacoes_ia:
+            titulo_rec = rec.get('titulo')
+            motivo = rec.get('motivo')
+            
+            poster_url = "https://via.placeholder.com/500x750?text=Poster+Indisponivel"
             try:
-                search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&language=pt-BR&query={requests.utils.quote(titulo_busca)}&page=1"
-                resp_search = requests.get(search_url, timeout=5).json()
-                results = resp_search.get('results', [])
-                if results:
-                    best_match = results[0]
-                    p_path = best_match.get('poster_path')
-                    rec['poster_path'] = f"https://image.tmdb.org/t/p/w500{p_path}" if p_path else "https://placehold.co/500x750/1a1a1a/ffffff?text=Capa+Indisponivel"
-                    rec['vote_average'] = best_match.get('vote_average', 8.0)
-                    if not rec.get('ano') and best_match.get('release_date'):
-                        rec['ano'] = best_match.get('release_date').split('-')[0]
-                else:
-                    rec['poster_path'] = "https://placehold.co/500x750/1a1a1a/ffffff?text=Capa+Indisponivel"
+                search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&language=pt-BR&query={requests.utils.quote(titulo_rec)}"
+                res_tmdb = requests.get(search_url, timeout=5).json()
+                if res_tmdb.get('results'):
+                    p_path = res_tmdb['results'][0].get('poster_path')
+                    if p_path:
+                        poster_url = f"{TMDB_IMAGE_BASE}{p_path}"
             except:
-                rec['poster_path'] = "https://placehold.co/500x750/1a1a1a/ffffff?text=Capa+Indisponivel"
-
-        return jsonify(resultado_json)
-        
+                pass
+                
+            recomendacoes_finais.append({
+                'titulo': titulo_rec,
+                'motivo': motivo,
+                'poster_url': poster_url
+            })
+            
+        return jsonify({'recomendacoes': recomendacoes_finais})
     except Exception as e:
-        return jsonify({'error': f'Erro ao processar recomendações com a IA: {str(e)}'}), 500
+        return jsonify({'error': f'Erro ao gerar recomendações: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
