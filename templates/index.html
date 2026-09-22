@@ -3,229 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineMatch IA - Recomendador Inteligente de Filmes</title>
+    <title>CineMatch IA - Recomendações Inteligentes</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { 
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-            min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; 
-            overflow-x: hidden; position: relative; color: #f8fafc;
+            background: linear-gradient(135deg, #0f172a 1e-02%, #1e1b4b 100%);
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; color: #f8fafc;
         }
 
-        .main-wrapper { display: flex; gap: 20px; width: 100%; max-width: 1100px; justify-content: center; align-items: flex-start; z-index: 10; }
+        .main-wrapper { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
 
         .smart-container { 
-            background: rgba(30, 41, 59, 0.75); 
-            backdrop-filter: blur(24px); 
-            border: 1px solid rgba(255, 255, 255, 0.15); 
+            background: rgba(30, 41, 59, 0.7); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
             border-radius: 24px; 
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); 
             width: 100%; 
-            max-width: 1050px; 
-            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
-            overflow: hidden; 
+            padding: 30px;
             display: flex; 
             flex-direction: column; 
+            gap: 24px;
         }
+
+        /* Header e Autenticação */
+        .app-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .logo-area { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info { font-size: 13px; color: #94a3b8; display: flex; gap: 15px; align-items: center; }
+        .btn-logout { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn-logout:hover { background: #ef4444; color: white; }
 
         /* Tela de Autenticação */
-        .auth-screen { padding: 50px 40px; display: flex; flex-direction: column; gap: 20px; text-align: center; max-width: 480px; margin: 0 auto; width: 100%; }
-        .auth-title { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .auth-subtitle { font-size: 14px; color: #94a3b8; margin-bottom: 10px; }
-        .auth-input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.6); color: white; font-size: 15px; outline: none; transition: 0.3s; }
-        .auth-input:focus { border-color: #f43f5e; box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2); }
+        .auth-box { max-width: 400px; margin: 80px auto; width: 100%; background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 16px; text-align: center; }
+        .auth-input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 14px; outline: none; }
+        .auth-input:focus { border-color: #38bdf8; }
+        .btn-primary { width: 100%; padding: 14px; background: #38bdf8; color: #0f172a; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #0ea5e9; }
+        .btn-google { width: 100%; padding: 12px; background: white; color: #1e293b; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .auth-switch { font-size: 13px; color: #94a3b8; cursor: pointer; }
+        .auth-switch span { color: #38bdf8; font-weight: 600; }
+
+        /* Seleção de Filmes */
+        .section-title { font-size: 16px; font-weight: 700; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
         
-        .btn-primary { width: 100%; padding: 14px; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); }
-        .btn-primary:hover { transform: translateY(-2px); opacity: 0.95; }
-        
-        .btn-google { width: 100%; padding: 12px; background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-google:hover { background: rgba(255,255,255,0.15); }
-        
-        .auth-switch { font-size: 13px; color: #94a3b8; cursor: pointer; margin-top: 10px; }
-        .auth-switch span { color: #f43f5e; font-weight: 600; }
+        .selected-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .slot { 
+            height: 180px; border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            text-align: center; padding: 10px; position: relative; background: rgba(15, 23, 42, 0.4);
+            overflow: hidden;
+        }
+        .slot.filled { border: 2px solid #38bdf8; border-style: solid; }
+        .slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; border-radius: 10px; }
+        .slot-remove { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; z-index: 5; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .slot-placeholder { font-size: 12px; color: #64748b; font-weight: 500; }
 
-        /* Área de App */
-        .app-screen { display: none; flex-direction: column; width: 100%; }
-        .user-header { padding: 16px 24px; background: rgba(15, 23, 42, 0.4); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #94a3b8; }
-        .btn-logout { background: transparent; border: none; color: #f43f5e; font-weight: 600; cursor: pointer; }
+        /* Barra de Pesquisa de Filmes */
+        .search-container { position: relative; width: 100%; }
+        .search-input { width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 15px; outline: none; }
+        .search-input:focus { border-color: #38bdf8; }
 
-        .content-area { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+        .search-dropdown {
+            position: absolute; top: calc(100% + 5px); left: 0; right: 0; max-height: 300px; overflow-y: auto;
+            background: #1e293b; border: 1px solid #475569; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: none; flex-direction: column; gap: 6px; padding: 10px; z-index: 99;
+        }
+        .search-result-item {
+            display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .search-result-item:hover { background: #334155; }
+        .search-result-item img { width: 40px; height: 60px; object-fit: cover; border-radius: 4px; }
+        .search-item-info { display: flex; flex-direction: column; gap: 2px; }
+        .search-item-title { font-size: 14px; font-weight: 600; color: #f8fafc; }
+        .search-item-year { font-size: 11px; color: #94a3b8; }
 
-        .app-header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .header-title { font-size: 18px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 8px; }
-        .ai-badge { font-size: 11px; background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); padding: 4px 10px; border-radius: 20px; color: white; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 2px 10px rgba(244,63,94,0.3); }
+        /* Botão Enviar para IA */
+        .action-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+        .btn-generate { background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; opacity: 0.5; pointer-events: none; }
+        .btn-generate.active { opacity: 1; pointer-events: auto; }
+        .btn-generate:hover { transform: scale(1.02); }
 
-        /* Seção de Escolhas Atuais (3 Filmes) */
-        .selection-tracker {
-            background: rgba(15, 23, 42, 0.5); border: 1px dashed rgba(244, 63, 94, 0.4); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
-        }
-        .tracker-header { font-size: 13px; font-weight: 600; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
-        .slots-container { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; min-height: 140px; align-items: center; }
-        
-        .slot-box {
-            width: 90px; height: 135px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: 0.3s;
-        }
-        .slot-box.filled { border-color: #f43f5e; box-shadow: 0 4px 15px rgba(244,63,94,0.3); }
-        .slot-box img { width: 100%; height: 100%; object-fit: cover; }
-        .slot-remove {
-            position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%;
-            width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
-        .slot-remove:hover { background: #f43f5e; }
-        .slot-empty-text { font-size: 11px; color: #64748b; text-align: center; padding: 10px; }
+        /* Área de Recomendações (Pôsteres) */
+        .results-section { display: none; flex-direction: column; gap: 16px; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; }
+        .posters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+        .movie-card { background: #0f172a; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; transition: 0.3s; }
+        .movie-card:hover { transform: translateY(-5px); border-color: #38bdf8; }
+        .movie-card img { width: 100%; height: 220px; object-fit: cover; }
+        .movie-card-content { padding: 10px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+        .movie-card-title { font-size: 13px; font-weight: 700; color: #f8fafc; }
+        .movie-card-reason { font-size: 11px; color: #94a3b8; line-height: 1.4; }
 
-        /* Biblioteca e Busca */
-        .library-section { display: flex; flex-direction: column; gap: 12px; }
-        .search-bar-row { display: flex; gap: 10px; }
-        .search-input { 
-            flex: 1; padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 12px; color: white; font-size: 14px; outline: none; transition: 0.3s; 
-        }
-        .search-input:focus { border-color: #f43f5e; box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2); }
-        
-        .movies-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; max-height: 320px; overflow-y: auto; padding-right: 5px;
-        }
-        .movies-grid::-webkit-scrollbar { width: 6px; }
-        .movies-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-
-        .movie-card {
-            background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;
-            cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; position: relative;
-        }
-        .movie-card:hover { transform: translateY(-4px); border-color: #f43f5e; box-shadow: 0 8px 25px rgba(244,63,94,0.25); }
-        .movie-card.selected { border: 2px solid #f43f5e; opacity: 0.6; pointer-events: none; }
-        .movie-card img { width: 100%; height: 180px; object-fit: cover; }
-        .movie-card-info { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
-        .movie-card-title { font-size: 12px; font-weight: 600; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .movie-card-year { font-size: 10px; color: #94a3b8; }
-
-        .action-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .status-msg { font-size: 13px; color: #fb7185; display: flex; align-items: center; gap: 8px; font-weight: 500; }
-        
-        .btn-recommend {
-            padding: 12px 24px; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none;
-            border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 4px 15px rgba(244,63,94,0.4);
-        }
-        .btn-recommend:hover:not(:disabled) { transform: translateY(-2px); }
-        .btn-recommend:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        /* Resultados da IA */
-        .results-section {
-            display: none; flex-direction: column; gap: 20px; background: rgba(15, 23, 42, 0.85); border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 24px;
-        }
-        .results-header { font-size: 16px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; justify-content: space-between; }
-        .ai-profile-analysis { background: rgba(244, 63, 94, 0.1); border-left: 4px solid #f43f5e; padding: 14px; border-radius: 0 12px 12px 0; font-size: 14px; color: #cbd5e1; line-height: 1.5; }
-        
-        .recommendations-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px;
-        }
-        .rec-card {
-            background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; overflow: hidden;
-            display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.3); transition: 0.3s;
-        }
-        .rec-card:hover { transform: translateY(-5px); border-color: #f43f5e; }
-        .rec-card img { width: 100%; height: 240px; object-fit: cover; }
-        .rec-card-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-        .rec-title { font-size: 13px; font-weight: 700; color: #f8fafc; }
-        .rec-meta { font-size: 11px; color: #fb7185; font-weight: 600; }
-        .rec-reason { font-size: 11px; color: #94a3b8; line-height: 1.4; margin-top: auto; }
-
-        .spinner { width: 16px; height: 16px; border: 2px solid #f43f5e; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner-container { display: none; align-items: center; justify-content: center; gap: 10px; font-size: 14px; color: #38bdf8; padding: 20px; }
+        .spinner { width: 20px; height: 20px; border: 3px solid #38bdf8; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div class="main-wrapper">
-        <div class="smart-container" id="mainContainer">
-            
-            <!-- TELA DE AUTENTICAÇÃO FIREBASE -->
-            <div id="authScreen" class="auth-screen">
-                <h1 class="auth-title" id="authTitle">CineMatch IA</h1>
-                <p class="auth-subtitle" id="authSubtitle">Entre com sua conta para descobrir filmes perfeitos</p>
-                
-                <input type="email" id="emailInput" class="auth-input" placeholder="Seu e-mail">
-                <input type="password" id="passwordInput" class="auth-input" placeholder="Sua senha">
-                
-                <button id="authBtn" class="btn-primary" onclick="handleAuth()">Entrar</button>
-                <button class="btn-google" onclick="loginGoogle()">
-                    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.19v3.15C3.17 21.31 7.24 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.19C.43 8.1 0 9.99 0 12s.43 3.9 1.19 5.42l4.09-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.24 0 3.17 2.69 1.19 6.58l4.09 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
-                    Continuar com Google
-                </button>
-                
-                <div class="auth-switch" onclick="toggleAuthMode()">
-                    Não tem uma conta? <span id="switchText">Cadastre-se</span>
-                </div>
-                <div id="authError" style="color: #f43f5e; font-size: 13px;"></div>
-            </div>
+    <!-- TELA DE LOGIN / AUTENTICAÇÃO -->
+    <div id="authScreen" class="auth-box">
+        <h2 id="authTitle" style="color: #f8fafc;">CineMatch IA</h2>
+        <p id="authSubtitle" style="font-size: 13px; color: #94a3b8;">Entre para descobrir recomendações</p>
+        
+        <input type="email" id="emailInput" class="auth-input" placeholder="Seu e-mail">
+        <input type="password" id="passwordInput" class="auth-input" placeholder="Sua senha">
+        
+        <button id="authBtn" class="btn-primary" onclick="handleAuth()">Entrar</button>
+        <button class="btn-google" onclick="loginGoogle()">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.19v3.15C3.17 21.31 7.24 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.19C.43 8.1 0 9.99 0 12s.43 3.9 1.19 5.42l4.09-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.24 0 3.17 2.69 1.19 6.58l4.09 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+            Entrar com Google
+        </button>
+        
+        <div class="auth-switch" onclick="toggleAuthMode()">
+            Não tem uma conta? <span id="switchText">Cadastre-se</span>
+        </div>
+        <div id="authError" style="color: #ef4444; font-size: 12px;"></div>
+    </div>
 
-            <!-- TELA PRINCIPAL DA APLICAÇÃO DE FILMES -->
-            <div id="appScreen" class="app-screen">
-                <div class="user-header">
-                    <span id="userEmailDisplay">Logado como: ...</span>
+    <!-- APLICATIVO PRINCIPAL -->
+    <div id="appScreen" class="main-wrapper" style="display: none;">
+        <div class="smart-container">
+            <div class="app-header">
+                <div class="logo-area">🎬 CineMatch IA</div>
+                <div class="user-info">
+                    <span id="userEmailDisplay">...</span>
                     <button class="btn-logout" onclick="fazerLogout()">Sair</button>
                 </div>
+            </div>
 
-                <div class="content-area">
-                    <div class="app-header-row">
-                        <div class="header-title">
-                            🎬 Biblioteca de Filmes & IA <span class="ai-badge">✦ Gemini Engine</span>
-                        </div>
-                        <div style="font-size: 13px; color: #94a3b8;">Selecione exatamente <strong>3 filmes</strong> favoritos</div>
-                    </div>
-
-                    <!-- Rastreador das 3 escolhas -->
-                    <div class="selection-tracker">
-                        <div class="tracker-header">
-                            <span>Sua Seleção (<span id="countSelected">0</span>/3 filmes escolhidos)</span>
-                            <span style="font-size: 11px; color: #f43f5e; cursor: pointer;" onclick="limparSelecao()">Limpar seleção</span>
-                        </div>
-                        <div class="slots-container" id="slotsContainer">
-                            <div class="slot-box"><span class="slot-empty-text">Filme 1</span></div>
-                            <div class="slot-box"><span class="slot-empty-text">Filme 2</span></div>
-                            <div class="slot-box"><span class="slot-empty-text">Filme 3</span></div>
-                        </div>
-                    </div>
-
-                    <!-- Biblioteca e Barra de Busca -->
-                    <div class="library-section">
-                        <div class="search-bar-row">
-                            <input type="text" id="searchInput" class="search-input" placeholder="Pesquisar filme na API do TMDb..." oninput="pesquisarFilmes(this.value)">
-                        </div>
-                        
-                        <div class="movies-grid" id="moviesGrid">
-                            <!-- Carregado via JS -->
-                        </div>
-                    </div>
-
-                    <div class="action-footer">
-                        <div class="status-msg" id="statusMsg" style="opacity: 0;">
-                            <div class="spinner"></div> Gerando recomendações personalizadas com IA...
-                        </div>
-                        
-                        <button id="btnRecommend" class="btn-recommend" disabled onclick="solicitarRecomendacoes()">
-                            ✨ Gerar Recomendações com IA
-                        </button>
-                    </div>
+            <!-- Seleção de Filmes -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="section-title">
+                    <span>1. Selecione 3 Filmes Favoritos (<span id="countSelected">0</span>/3)</span>
                 </div>
-
-                <!-- Seção de Resultados da IA -->
-                <div class="results-section" id="resultsSection">
-                    <div class="results-header">
-                        <span>🎯 Recomendações Personalizadas para Você</span>
-                        <button style="background: transparent; border: none; color: #94a3b8; font-size: 12px; cursor: pointer;" onclick="fecharResultados()">← Escolher outros filmes</button>
-                    </div>
-                    
-                    <div class="ai-profile-analysis" id="aiProfileAnalysis"></div>
-                    
-                    <div class="recommendations-grid" id="recommendationsGrid">
-                        <!-- Carregado via IA -->
-                    </div>
+                
+                <div class="selected-slots">
+                    <div class="slot" id="slot0"><span class="slot-placeholder">Filme 1</span></div>
+                    <div class="slot" id="slot1"><span class="slot-placeholder">Filme 2</span></div>
+                    <div class="slot" id="slot2"><span class="slot-placeholder">Filme 3</span></div>
                 </div>
+            </div>
+
+            <!-- Barra de Pesquisa Instantânea -->
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="section-title"><span>Buscar Filme na Biblioteca</span></div>
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Digite o nome de um filme (ex: Interestelar, Matrix...)" oninput="pesquisarFilmes(this.value)" autocomplete="off">
+                    <div id="searchDropdown" class="search-dropdown"></div>
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button id="btnGenerate" class="btn-generate" onclick="gerarRecomendacoes()">Gerar Recomendações com IA ✦</button>
+            </div>
+
+            <div id="spinnerContainer" class="spinner-container">
+                <div class="spinner"></div> Analisando seus gostos e selecionando os melhores pôsteres...
+            </div>
+
+            <!-- Resultados de Recomendações em Pôsteres -->
+            <div id="resultsSection" class="results-section">
+                <div class="section-title"><span>✦ Filmes Recomendados para Você</span></div>
+                <div id="postersGrid" class="posters-grid"></div>
             </div>
         </div>
     </div>
@@ -233,20 +172,11 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword, 
-            signInWithPopup, 
-            GoogleAuthProvider, 
-            signOut, 
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB3lORq3nF7mbcQc-YZObZvBwMXtVWQ5y4",
             authDomain: "systemhyper1.firebaseapp.com",
-            databaseURL: "https://systemhyper1-default-rtdb.firebaseio.com",
             projectId: "systemhyper1",
             storageBucket: "systemhyper1.firebasestorage.app",
             messagingSenderId: "65464629978",
@@ -257,13 +187,12 @@
         const auth = getAuth(app);
 
         let isRegistering = false;
-        let filmesSelecionados = [];
-        let filmesCatalogo = [];
+        window.filmesSelecionados = [];
 
         window.toggleAuthMode = function() {
             isRegistering = !isRegistering;
-            document.getElementById('authTitle').textContent = isRegistering ? "Criar Nova Conta" : "CineMatch IA";
-            document.getElementById('authSubtitle').textContent = isRegistering ? "Cadastre-se para começar" : "Entre com sua conta para descobrir filmes perfeitos";
+            document.getElementById('authTitle').textContent = isRegistering ? "Criar Conta" : "CineMatch IA";
+            document.getElementById('authSubtitle').textContent = isRegistering ? "Cadastre-se para começar" : "Entre para descobrir recomendações";
             document.getElementById('authBtn').textContent = isRegistering ? "Cadastrar" : "Entrar";
             document.getElementById('switchText').textContent = isRegistering ? "Fazer login" : "Cadastre-se";
         }
@@ -273,7 +202,6 @@
             const pass = document.getElementById('passwordInput').value;
             const errDiv = document.getElementById('authError');
             errDiv.textContent = "";
-
             try {
                 if (isRegistering) {
                     await createUserWithEmailAndPassword(auth, email, pass);
@@ -302,170 +230,175 @@
             if (user) {
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('appScreen').style.display = 'flex';
-                document.getElementById('userEmailDisplay').textContent = `Logado como: ${user.email}`;
-                carregarFilmesPopulares();
+                document.getElementById('userEmailDisplay').textContent = user.email;
+                carregarFilmesIniciais();
             } else {
                 document.getElementById('authScreen').style.display = 'flex';
                 document.getElementById('appScreen').style.display = 'none';
             }
         });
 
-        async function carregarFilmesPopulares() {
-            try {
-                const response = await fetch('/api/filmes/populares');
-                const data = await response.json();
-                if (data.filmes) {
-                    filmesCatalogo = data.filmes;
-                    renderizarCatalogo(filmesCatalogo);
+        // Função de Pesquisa Instantânea ao Digitar
+        let timeoutId = null;
+        window.pesquisarFilmes = function(termo) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(async () => {
+                const dropdown = document.getElementById('searchDropdown');
+                try {
+                    const res = await fetch(`/api/filmes/buscar?q=${encodeURIComponent(termo)}`);
+                    const data = await res.json();
+                    
+                    if (data.results && data.results.length > 0) {
+                        let html = '';
+                        data.results.forEach(f => {
+                            html += `
+                                <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(f).replace(/'/g, "&#39;")})'>
+                                    <img src="${f.poster_url}" alt="${f.title}">
+                                    <div class="search-item-info">
+                                        <span class="search-item-title">${f.title}</span>
+                                        <span class="search-item-year">${f.release_date || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        dropdown.innerHTML = html;
+                        dropdown.style.display = 'flex';
+                    } else {
+                        dropdown.innerHTML = `<div style="padding: 10px; font-size:12px; color:#94a3b8; text-align:center;">Nenhum filme encontrado.</div>`;
+                        dropdown.style.display = 'flex';
+                    }
+                } catch (e) {
+                    console.error(e);
                 }
-            } catch (err) {
-                console.error("Erro ao carregar filmes:", err);
+            }, 250);
+        }
+
+        async function carregarFilmesIniciais() {
+            try {
+                const res = await fetch('/api/filmes/buscar?q=');
+                const data = await res.json();
+                if (data.results) {
+                    let html = '';
+                    data.results.slice(0, 8).forEach(f => {
+                        html += `
+                            <div class="search-result-item" onclick='adicionarFilme(${JSON.stringify(f).replace(/'/g, "&#39;")})'>
+                                <img src="${f.poster_url}" alt="${f.title}">
+                                <div class="search-item-info">
+                                    <span class="search-item-title">${f.title}</span>
+                                    <span class="search-item-year">${f.release_date || 'N/A'}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('searchDropdown').innerHTML = html;
+                }
+            } catch (e) {
+                console.error(e);
             }
         }
 
-        window.pesquisarFilmes = async function(termo) {
-            if (!termo || termo.trim() === "") {
-                renderizarCatalogo(filmesCatalogo);
+        window.adicionarFilme = function(filme) {
+            if (window.filmesSelecionados.length >= 3) {
+                alert("Você já selecionou 3 filmes. Remova um para escolher outro.");
                 return;
             }
-            try {
-                const response = await fetch(`/api/filmes/buscar?q=${encodeURIComponent(termo)}`);
-                const data = await response.json();
-                if (data.filmes) {
-                    renderizarCatalogo(data.filmes);
-                }
-            } catch (err) {
-                console.error("Erro na busca:", err);
+            if (window.filmesSelecionados.some(f => f.id === filme.id)) {
+                alert("Este filme já foi selecionado.");
+                return;
             }
-        }
-
-        function renderizarCatalogo(filmes) {
-            const grid = document.getElementById('moviesGrid');
-            grid.innerHTML = "";
             
-            filmes.forEach(filme => {
-                const selecionado = filmesSelecionados.some(f => f.id === filme.id);
-                const card = document.createElement('div');
-                card.className = `movie-card ${selecionado ? 'selected' : ''}`;
-                card.onclick = () => selecionarFilme(filme);
-                
-                const ano = filme.release_date ? filme.release_date.split('-')[0] : '';
-                
-                card.innerHTML = `
-                    <img src="${filme.poster_path}" alt="${filme.title}" onerror="this.src='https://placehold.co/500x750/1a1a1a/ffffff?text=Capa'">
-                    <div class="movie-card-info">
-                        <span class="movie-card-title" title="${filme.title}">${filme.title}</span>
-                        <span class="movie-card-year">${ano} ⭐ ${filme.vote_average.toFixed(1)}</span>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function selecionarFilme(filme) {
-            if (filmesSelecionados.length >= 3) return;
-            if (filmesSelecionados.some(f => f.id === filme.id)) return;
-            
-            filmesSelecionados.push(filme);
-            atualizarTracker();
-            renderizarCatalogo(filmesCatalogo.length ? filmesCatalogo : []);
+            window.filmesSelecionados.push(filme);
+            atualizarSlots();
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchDropdown').style.display = 'none';
         }
 
         window.removerFilme = function(index) {
-            filmesSelecionados.splice(index, 1);
-            atualizarTracker();
-            renderizarCatalogo(filmesCatalogo);
+            window.filmesSelecionados.splice(index, 1);
+            atualizarSlots();
         }
 
-        window.limparSelecao = function() {
-            filmesSelecionados = [];
-            atualizarTracker();
-            renderizarCatalogo(filmesCatalogo);
-            document.getElementById('resultsSection').style.display = 'none';
-        }
-
-        function atualizarTracker() {
-            const slots = document.getElementById('slotsContainer');
-            const countSpan = document.getElementById('countSelected');
-            const btnRecommend = document.getElementById('btnRecommend');
-            
-            countSpan.textContent = filmesSelecionados.length;
-            slots.innerHTML = "";
-            
+        function atualizarSlots() {
+            document.getElementById('countSelected').textContent = window.filmesSelecionados.length;
             for (let i = 0; i < 3; i++) {
-                if (filmesSelecionados[i]) {
-                    const f = filmesSelecionados[i];
-                    slots.innerHTML += `
-                        <div class="slot-box filled">
-                            <img src="${f.poster_path}" alt="${f.title}">
-                            <button class="slot-remove" onclick="removerFilme(${i})">✕</button>
-                        </div>
+                const slot = document.getElementById(`slot${i}`);
+                if (window.filmesSelecionados[i]) {
+                    const f = window.filmesSelecionados[i];
+                    slot.className = "slot filled";
+                    slot.innerHTML = `
+                        <img src="${f.poster_url}" alt="${f.title}">
+                        <button class="slot-remove" onclick="removerFilme(${i})">✕</button>
                     `;
                 } else {
-                    slots.innerHTML += `
-                        <div class="slot-box">
-                            <span class="slot-empty-text">Filme ${i+1}</span>
-                        </div>
-                    `;
+                    slot.className = "slot";
+                    slot.innerHTML = `<span class="slot-placeholder">Filme ${i+1}</span>`;
                 }
             }
-            
-            btnRecommend.disabled = filmesSelecionados.length !== 3;
+
+            const btnGen = document.getElementById('btnGenerate');
+            if (window.filmesSelecionados.length === 3) {
+                btnGen.classList.add('active');
+            } else {
+                btnGen.classList.remove('active');
+            }
         }
 
-        window.solicitarRecomendacoes = async function() {
-            if (filmesSelecionados.length !== 3) return;
-            
-            const statusMsg = document.getElementById('statusMsg');
-            const btnRecommend = document.getElementById('btnRecommend');
+        window.gerarRecomendações = async function() {
+            if (window.filmesSelecionados.length < 3) return;
+
+            const spinner = document.getElementById('spinnerContainer');
             const resultsSection = document.getElementById('resultsSection');
-            
-            statusMsg.style.opacity = "1";
-            btnRecommend.disabled = true;
-            
+            const postersGrid = document.getElementById('postersGrid');
+
+            spinner.style.display = 'flex';
+            resultsSection.style.display = 'none';
+            postersGrid.innerHTML = '';
+
             try {
                 const response = await fetch('/api/recomendar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filmes: filmesSelecionados })
+                    body: JSON.stringify({ filmes: window.filmesSelecionados })
                 });
-                
+
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Erro ao gerar recomendações');
-                
-                document.getElementById('aiProfileAnalysis').textContent = data.analise_perfil;
-                
-                const recGrid = document.getElementById('recommendationsGrid');
-                recGrid.innerHTML = "";
-                
+
+                let html = '';
                 data.recomendacoes.forEach(rec => {
-                    recGrid.innerHTML += `
-                        <div class="rec-card">
-                            <img src="${rec.poster_path}" alt="${rec.titulo}" onerror="this.src='https://placehold.co/500x750/1a1a1a/ffffff?text=Capa'">
-                            <div class="rec-card-body">
-                                <span class="rec-title">${rec.titulo} (${rec.ano || 'N/A'})</span>
-                                <span class="rec-meta">${rec.genero || 'Cinema'}</span>
-                                <p class="rec-reason">${rec.motivo}</p>
+                    html += `
+                        <div class="movie-card">
+                            <img src="${rec.poster_url}" alt="${rec.titulo}">
+                            <div class="movie-card-content">
+                                <div class="movie-card-title">${rec.titulo}</div>
+                                <div class="movie-card-reason">${rec.motivo}</div>
                             </div>
                         </div>
                     `;
                 });
-                
+                postersGrid.innerHTML = html;
                 resultsSection.style.display = 'flex';
-                resultsSection.scrollIntoView({ behavior: 'smooth' });
-                
-            } catch (err) {
-                alert(`Erro: ${err.message}`);
+            } catch (e) {
+                alert(e.message);
             } finally {
-                statusMsg.style.opacity = "0";
-                btnRecommend.disabled = false;
+                spinner.style.display = 'none';
             }
         }
 
-        window.fecharResultados = function() {
-            document.getElementById('resultsSection').style.display = 'none';
-            document.getElementById('mainContainer').scrollIntoView({ behavior: 'smooth' });
-        }
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', function(e) {
+            const container = document.querySelector('.search-container');
+            if (!container.contains(e.target)) {
+                document.getElementById('searchDropdown').style.display = 'none';
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('focus', function() {
+            if (this.value.trim() === '') {
+                carregarFilmesIniciais();
+            }
+            document.getElementById('searchDropdown').style.display = 'flex';
+        });
     </script>
 </body>
 </html>
