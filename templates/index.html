@@ -3,128 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocFlow IA - Análise e Gestão de Documentos</title>
+    <title>CineMatch IA - Recomendador Inteligente de Filmes</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { 
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
             min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; 
-            overflow-x: hidden; position: relative;
+            overflow-x: hidden; position: relative; color: #f8fafc;
         }
 
-        .main-wrapper { display: flex; gap: 20px; width: 100%; max-width: 800px; justify-content: center; align-items: flex-start; z-index: 10; }
+        .main-wrapper { display: flex; gap: 20px; width: 100%; max-width: 1100px; justify-content: center; align-items: flex-start; z-index: 10; }
 
         .smart-container { 
-            background: rgba(255, 255, 255, 0.75); 
+            background: rgba(30, 41, 59, 0.75); 
             backdrop-filter: blur(24px); 
-            border: 1px solid rgba(255, 255, 255, 0.9); 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
             border-radius: 24px; 
-            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.08); 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); 
             width: 100%; 
-            max-width: 740px; 
+            max-width: 1050px; 
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
-            overflow: visible; 
+            overflow: hidden; 
             display: flex; 
             flex-direction: column; 
         }
 
         /* Tela de Autenticação */
-        .auth-screen { padding: 40px 30px; display: flex; flex-direction: column; gap: 20px; text-align: center; }
-        .auth-title { font-size: 22px; font-weight: 700; color: #2c3e50; }
-        .auth-subtitle { font-size: 14px; color: #7f8c8d; margin-bottom: 10px; }
-        .auth-input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid #dcdde1; background: white; font-size: 15px; outline: none; transition: 0.3s; }
-        .auth-input:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
+        .auth-screen { padding: 50px 40px; display: flex; flex-direction: column; gap: 20px; text-align: center; max-width: 480px; margin: 0 auto; width: 100%; }
+        .auth-title { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .auth-subtitle { font-size: 14px; color: #94a3b8; margin-bottom: 10px; }
+        .auth-input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.6); color: white; font-size: 15px; outline: none; transition: 0.3s; }
+        .auth-input:focus { border-color: #f43f5e; box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2); }
         
-        .btn-primary { width: 100%; padding: 14px; background: #2c3e50; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .btn-primary:hover { background: #000; }
+        .btn-primary { width: 100%; padding: 14px; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); }
+        .btn-primary:hover { transform: translateY(-2px); opacity: 0.95; }
         
-        .btn-google { width: 100%; padding: 12px; background: white; color: #2c3e50; border: 1px solid #dcdde1; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-google:hover { background: #f1f2f6; }
+        .btn-google { width: 100%; padding: 12px; background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-google:hover { background: rgba(255,255,255,0.15); }
         
-        .auth-switch { font-size: 13px; color: #7f8c8d; cursor: pointer; margin-top: 10px; }
-        .auth-switch span { color: #3498db; font-weight: 600; }
+        .auth-switch { font-size: 13px; color: #94a3b8; cursor: pointer; margin-top: 10px; }
+        .auth-switch span { color: #f43f5e; font-weight: 600; }
 
         /* Área de App */
         .app-screen { display: none; flex-direction: column; width: 100%; }
-        .user-header { padding: 16px 24px; background: rgba(255, 255, 255, 0.4); border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #596a7b; }
-        .btn-logout { background: transparent; border: none; color: #e74c3c; font-weight: 600; cursor: pointer; }
+        .user-header { padding: 16px 24px; background: rgba(15, 23, 42, 0.4); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #94a3b8; }
+        .btn-logout { background: transparent; border: none; color: #f43f5e; font-weight: 600; cursor: pointer; }
 
-        .prompt-area { 
-            padding: 24px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 16px; 
-            background: rgba(255, 255, 255, 0.3); 
-            position: relative; 
+        .content-area { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+        .app-header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header-title { font-size: 18px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 8px; }
+        .ai-badge { font-size: 11px; background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); padding: 4px 10px; border-radius: 20px; color: white; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 2px 10px rgba(244,63,94,0.3); }
+
+        /* Seção de Escolhas Atuais (3 Filmes) */
+        .selection-tracker {
+            background: rgba(15, 23, 42, 0.5); border: 1px dashed rgba(244, 63, 94, 0.4); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
         }
-
-        .header-title { font-size: 14px; font-weight: 600; color: #596a7b; display: flex; justify-content: space-between; align-items: center; }
-        .ai-badge { font-size: 12px; background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; letter-spacing: 1px; }
-
-        .split-bar { display: flex; gap: 12px; align-items: center; width: 100%; }
-        .split-section { flex: 1; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+        .tracker-header { font-size: 13px; font-weight: 600; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+        .slots-container { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; min-height: 140px; align-items: center; }
         
-        .upload-trigger { cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; }
-        .file-name { font-size: 14px; color: #2c3e50; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        .search-input { width: 100%; background: transparent; border: none; outline: none; font-size: 14px; color: #2c3e50; }
-        
-        /* Dropdown de Busca */
-        .search-results-dropdown {
-            position: absolute; top: calc(100% - 15px); left: 24px; right: 24px; max-height: 280px; overflow-y: auto;
-            background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.12);
-            display: none; flex-direction: column; gap: 8px; padding: 12px; z-index: 999;
+        .slot-box {
+            width: 90px; height: 135px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: 0.3s;
         }
-        .search-dropdown-header { font-size: 11px; font-weight: 700; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 4px; }
-        .search-result-item {
-            padding: 10px 12px; background: rgba(240, 245, 250, 0.8); border-radius: 10px; cursor: pointer;
-            font-size: 13px; color: #2c3e50; font-weight: 600; transition: 0.2s; display: flex; flex-direction: column; gap: 2px;
-            border: 1px solid transparent;
+        .slot-box.filled { border-color: #f43f5e; box-shadow: 0 4px 15px rgba(244,63,94,0.3); }
+        .slot-box img { width: 100%; height: 100%; object-fit: cover; }
+        .slot-remove {
+            position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%;
+            width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
-        .search-result-item:hover { background: #3498db; color: white; border-color: #2980b9; }
-        .search-result-item:hover .search-item-snippet { color: rgba(255,255,255,0.85); }
-        .search-item-snippet { font-size: 11px; font-weight: 400; color: #7f8c8d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .slot-remove:hover { background: #f43f5e; }
+        .slot-empty-text { font-size: 11px; color: #64748b; text-align: center; padding: 10px; }
 
-        .action-bar { display: flex; justify-content: flex-end; align-items: center; margin-top: 4px; }
-        .status-text { font-size: 13px; color: #3498db; font-weight: 500; opacity: 0; display: flex; align-items: center; gap: 8px; margin-right: auto; }
+        /* Biblioteca e Busca */
+        .library-section { display: flex; flex-direction: column; gap: 12px; }
+        .search-bar-row { display: flex; gap: 10px; }
+        .search-input { 
+            flex: 1; padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 12px; color: white; font-size: 14px; outline: none; transition: 0.3s; 
+        }
+        .search-input:focus { border-color: #f43f5e; box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2); }
         
-        .btn-submit { background: #2c3e50; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s; }
-        .btn-submit:hover:not(:disabled) { transform: scale(1.1); background: #000; }
-        .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+        .movies-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; max-height: 320px; overflow-y: auto; padding-right: 5px;
+        }
+        .movies-grid::-webkit-scrollbar { width: 6px; }
+        .movies-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 
-        .results-area { max-height: 0; opacity: 0; transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(255, 255, 255, 0.9); border-top: 1px solid rgba(0,0,0,0.05); overflow: hidden; display: flex; }
-        .expanded .results-area { max-height: 1200px; opacity: 1; padding: 32px 24px; }
+        .movie-card {
+            background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;
+            cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; position: relative;
+        }
+        .movie-card:hover { transform: translateY(-4px); border-color: #f43f5e; box-shadow: 0 8px 25px rgba(244,63,94,0.25); }
+        .movie-card.selected { border: 2px solid #f43f5e; opacity: 0.6; pointer-events: none; }
+        .movie-card img { width: 100%; height: 180px; object-fit: cover; }
+        .movie-card-info { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+        .movie-card-title { font-size: 12px; font-weight: 600; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .movie-card-year { font-size: 10px; color: #94a3b8; }
 
-        .result-content-wrapper { flex: 1; min-width: 0; }
-        .result-title { font-size: 12px; font-weight: 700; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .script-box { background: white; border: 1px solid #dcdde1; padding: 16px; border-radius: 12px; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        .action-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .status-msg { font-size: 13px; color: #fb7185; display: flex; align-items: center; gap: 8px; font-weight: 500; }
         
-        /* Sidebar de Compartilhamento e Ações */
-        .share-sidebar { display: flex; flex-direction: column; gap: 10px; margin-left: 16px; justify-content: flex-start; align-items: center; padding-top: 24px; }
-        .share-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; position: relative; text-decoration: none; color: #2c3e50; }
-        .share-btn:hover { transform: scale(1.1); background: #f1f2f6; }
-        .share-btn svg { width: 18px; height: 18px; }
-        
-        .share-btn.whatsapp:hover { background: #25d366; color: white; }
-        .share-btn.email:hover { background: #ea4335; color: white; }
-        .share-btn.copy:hover { background: #3498db; color: white; }
-        .share-btn.download:hover { background: #2c3e50; color: white; }
-        .share-btn.save-box:hover { background: #f39c12; color: white; }
+        .btn-recommend {
+            padding: 12px 24px; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none;
+            border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 15px rgba(244,63,94,0.4);
+        }
+        .btn-recommend:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn-recommend:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .spinner { width: 16px; height: 16px; border: 2px solid #3498db; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        /* Resultados da IA */
+        .results-section {
+            display: none; flex-direction: column; gap: 20px; background: rgba(15, 23, 42, 0.85); border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 24px;
+        }
+        .results-header { font-size: 16px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; justify-content: space-between; }
+        .ai-profile-analysis { background: rgba(244, 63, 94, 0.1); border-left: 4px solid #f43f5e; padding: 14px; border-radius: 0 12px 12px 0; font-size: 14px; color: #cbd5e1; line-height: 1.5; }
+        
+        .recommendations-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px;
+        }
+        .rec-card {
+            background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; overflow: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.3); transition: 0.3s;
+        }
+        .rec-card:hover { transform: translateY(-5px); border-color: #f43f5e; }
+        .rec-card img { width: 100%; height: 240px; object-fit: cover; }
+        .rec-card-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+        .rec-title { font-size: 13px; font-weight: 700; color: #f8fafc; }
+        .rec-meta { font-size: 11px; color: #fb7185; font-weight: 600; }
+        .rec-reason { font-size: 11px; color: #94a3b8; line-height: 1.4; margin-top: auto; }
+
+        .spinner { width: 16px; height: 16px; border: 2px solid #f43f5e; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body tabindex="0">
+<body>
 
     <div class="main-wrapper">
         <div class="smart-container" id="mainContainer">
             
-            <!-- TELA DE LOGIN / CADASTRO -->
+            <!-- TELA DE AUTENTICAÇÃO FIREBASE -->
             <div id="authScreen" class="auth-screen">
-                <h1 class="auth-title" id="authTitle">Bem-vindo ao DocFlow IA</h1>
-                <p class="auth-subtitle" id="authSubtitle">Faça login para continuar</p>
+                <h1 class="auth-title" id="authTitle">CineMatch IA</h1>
+                <p class="auth-subtitle" id="authSubtitle">Entre com sua conta para descobrir filmes perfeitos</p>
                 
                 <input type="email" id="emailInput" class="auth-input" placeholder="Seu e-mail">
                 <input type="password" id="passwordInput" class="auth-input" placeholder="Sua senha">
@@ -138,83 +160,70 @@
                 <div class="auth-switch" onclick="toggleAuthMode()">
                     Não tem uma conta? <span id="switchText">Cadastre-se</span>
                 </div>
-                <div id="authError" style="color: #e74c3c; font-size: 13px;"></div>
+                <div id="authError" style="color: #f43f5e; font-size: 13px;"></div>
             </div>
 
-            <!-- TELA DO APLICATIVO -->
+            <!-- TELA PRINCIPAL DA APLICAÇÃO DE FILMES -->
             <div id="appScreen" class="app-screen">
                 <div class="user-header">
                     <span id="userEmailDisplay">Logado como: ...</span>
                     <button class="btn-logout" onclick="fazerLogout()">Sair</button>
                 </div>
 
-                <div class="prompt-area">
-                    <div class="header-title">
-                        <span>Gerenciamento de Documentos Inteligente</span>
-                        <span class="ai-badge">✦ DocFlow IA</span>
-                    </div>
-                    
-                    <div class="split-bar">
-                        <!-- Lado Esquerdo: Anexar Novo Arquivo -->
-                        <div class="split-section upload-trigger" onclick="document.getElementById('arquivoPdf').click()">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2c3e50" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                            </svg>
-                            <span id="fileName" class="file-name" style="color: #7f8c8d;">Anexar novo doc...</span>
-                            <input type="file" id="arquivoPdf" accept=".pdf,.doc,.docx,.txt,.png,.jpg" style="display: none;" onchange="atualizarNomeArquivo()" />
+                <div class="content-area">
+                    <div class="app-header-row">
+                        <div class="header-title">
+                            🎬 Biblioteca de Filmes & IA <span class="ai-badge">✦ Gemini Engine</span>
                         </div>
+                        <div style="font-size: 13px; color: #94a3b8;">Selecione exatamente <strong>3 filmes</strong> favoritos</div>
+                    </div>
 
-                        <!-- Lado Direito: Buscar nos Resumos Salvos -->
-                        <div class="split-section">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#7f8c8d" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                            </svg>
-                            <input type="text" id="searchInput" class="search-input" placeholder="Buscar por Nome, CPF, CNPJ..." onfocus="mostrarHistoricoCompleto()" oninput="filtrarHistoricoBusca(this.value)">
+                    <!-- Rastreador das 3 escolhas -->
+                    <div class="selection-tracker">
+                        <div class="tracker-header">
+                            <span>Sua Seleção (<span id="countSelected">0</span>/3 filmes escolhidos)</span>
+                            <span style="font-size: 11px; color: #f43f5e; cursor: pointer;" onclick="limparSelecao()">Limpar seleção</span>
+                        </div>
+                        <div class="slots-container" id="slotsContainer">
+                            <div class="slot-box"><span class="slot-empty-text">Filme 1</span></div>
+                            <div class="slot-box"><span class="slot-empty-text">Filme 2</span></div>
+                            <div class="slot-box"><span class="slot-empty-text">Filme 3</span></div>
                         </div>
                     </div>
 
-                    <div id="searchResultsDropdown" class="search-results-dropdown"></div>
-                    
-                    <div class="action-bar">
-                        <div class="status-text" id="statusText">
-                            <div class="spinner"></div> Processando documento...
+                    <!-- Biblioteca e Barra de Busca -->
+                    <div class="library-section">
+                        <div class="search-bar-row">
+                            <input type="text" id="searchInput" class="search-input" placeholder="Pesquisar filme na API do TMDb..." oninput="pesquisarFilmes(this.value)">
                         </div>
                         
-                        <button id="btnSubmit" class="btn-submit" disabled onclick="processarDocumento()">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
-                            </svg>
+                        <div class="movies-grid" id="moviesGrid">
+                            <!-- Carregado via JS -->
+                        </div>
+                    </div>
+
+                    <div class="action-footer">
+                        <div class="status-msg" id="statusMsg" style="opacity: 0;">
+                            <div class="spinner"></div> Gerando recomendações personalizadas com IA...
+                        </div>
+                        
+                        <button id="btnRecommend" class="btn-recommend" disabled onclick="solicitarRecomendacoes()">
+                            ✨ Gerar Recomendações com IA
                         </button>
                     </div>
                 </div>
 
-                <div class="results-area">
-                    <div class="result-content-wrapper">
-                        <div class="result-block">
-                            <div class="result-title" id="resultadoTitulo">⚡ Relatório da Análise</div>
-                            <div class="script-box">
-                                <div id="iaResultado" style="white-space: pre-wrap; color: #2c3e50; font-size: 15px; line-height: 1.5;"></div>
-                            </div>
-                        </div>
+                <!-- Seção de Resultados da IA -->
+                <div class="results-section" id="resultsSection">
+                    <div class="results-header">
+                        <span>🎯 Recomendações Personalizadas para Você</span>
+                        <button style="background: transparent; border: none; color: #94a3b8; font-size: 12px; cursor: pointer;" onclick="fecharResultados()">← Escolher outros filmes</button>
                     </div>
-
-                    <!-- Sidebar de Compartilhamento e Ações -->
-                    <div class="share-sidebar">
-                        <button class="share-btn save-box" onclick="salvarNasCaixas()" title="Salvar no Histórico">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                        </button>
-                        <button class="share-btn whatsapp" onclick="compartilharWhatsApp()" title="WhatsApp">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                        </button>
-                        <button class="share-btn email" onclick="compartilharEmail()" title="E-mail">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                        </button>
-                        <button class="share-btn copy" onclick="copiarTexto()" title="Copiar">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        </button>
-                        <button class="share-btn download" onclick="baixarTxt()" title="Baixar TXT">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        </button>
+                    
+                    <div class="ai-profile-analysis" id="aiProfileAnalysis"></div>
+                    
+                    <div class="recommendations-grid" id="recommendationsGrid">
+                        <!-- Carregado via IA -->
                     </div>
                 </div>
             </div>
@@ -233,7 +242,6 @@
             signOut, 
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-        import { getDatabase, ref, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB3lORq3nF7mbcQc-YZObZvBwMXtVWQ5y4",
@@ -247,17 +255,15 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getDatabase(app);
 
         let isRegistering = false;
-        let globalHistorico = [];
-        let ultimoResultadoAtual = "";
-        let ultimoNomeArquivoAtual = "";
+        let filmesSelecionados = [];
+        let filmesCatalogo = [];
 
         window.toggleAuthMode = function() {
             isRegistering = !isRegistering;
-            document.getElementById('authTitle').textContent = isRegistering ? "Criar Nova Conta" : "Bem-vindo ao DocFlow IA";
-            document.getElementById('authSubtitle').textContent = isRegistering ? "Cadastre-se para começar" : "Faça login para continuar";
+            document.getElementById('authTitle').textContent = isRegistering ? "Criar Nova Conta" : "CineMatch IA";
+            document.getElementById('authSubtitle').textContent = isRegistering ? "Cadastre-se para começar" : "Entre com sua conta para descobrir filmes perfeitos";
             document.getElementById('authBtn').textContent = isRegistering ? "Cadastrar" : "Entrar";
             document.getElementById('switchText').textContent = isRegistering ? "Fazer login" : "Cadastre-se";
         }
@@ -297,208 +303,168 @@
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('appScreen').style.display = 'flex';
                 document.getElementById('userEmailDisplay').textContent = `Logado como: ${user.email}`;
-
-                const historicoRef = ref(db, `historico_analises/${user.uid}`);
-                onValue(historicoRef, (snapshot) => {
-                    globalHistorico = [];
-                    const data = snapshot.val();
-                    if (data) {
-                        Object.keys(data).forEach(key => {
-                            globalHistorico.push({ id: key, ...data[key] });
-                        });
-                        globalHistorico.reverse();
-                    }
-                });
-
+                carregarFilmesPopulares();
             } else {
                 document.getElementById('authScreen').style.display = 'flex';
                 document.getElementById('appScreen').style.display = 'none';
             }
         });
 
-        const inputArquivo = document.getElementById('arquivoPdf');
-        const fileName = document.getElementById('fileName');
-        const btnSubmit = document.getElementById('btnSubmit');
-        const mainContainer = document.getElementById('mainContainer');
-        const statusText = document.getElementById('statusText');
-        const iaResultado = document.getElementById('iaResultado');
-        const resultadoTitulo = document.getElementById('resultadoTitulo');
-
-        window.atualizarNomeArquivo = function() {
-            if (inputArquivo.files.length > 0) {
-                fileName.textContent = inputArquivo.files[0].name;
-                fileName.style.color = "#2c3e50";
-                btnSubmit.disabled = false;
-            } else {
-                fileName.textContent = "Anexar novo doc...";
-                fileName.style.color = "#7f8c8d";
-                btnSubmit.disabled = true;
-            }
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && !btnSubmit.disabled && inputArquivo.files.length > 0) {
-                processarDocumento();
-            }
-        });
-
-        window.processarDocumento = async function() {
-            if (inputArquivo.files.length === 0) return;
-
-            const file = inputArquivo.files[0];
-            ultimoNomeArquivoAtual = file.name;
-            const formData = new FormData();
-            formData.append('file', file);
-
-            btnSubmit.disabled = true;
-            statusText.style.opacity = "1";
-            mainContainer.classList.remove('expanded');
-
+        async function carregarFilmesPopulares() {
             try {
-                const response = await fetch('/api/analisar', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const contentType = response.headers.get('content-type');
-                let data;
-                
-                if (contentType && contentType.includes('application/json')) {
-                    data = await response.json();
-                } else {
-                    const textError = await response.text();
-                    throw new Error(`Erro do Servidor (${response.status}): ${textError.slice(0, 100)}`);
+                const response = await fetch('/api/filmes/populares');
+                const data = await response.json();
+                if (data.filmes) {
+                    filmesCatalogo = data.filmes;
+                    renderizarCatalogo(filmesCatalogo);
                 }
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Erro desconhecido ao processar.');
-                }
-
-                ultimoResultadoAtual = data.resultado;
-                resultadoTitulo.textContent = `⚡ Resultado: ${file.name}`;
-                iaResultado.textContent = data.resultado;
-                mainContainer.classList.add('expanded');
-
-                inputArquivo.value = "";
-                fileName.textContent = "Anexar novo doc...";
-                fileName.style.color = "#7f8c8d";
-                btnSubmit.disabled = true;
-
-            } catch (error) {
-                console.error(error);
-                resultadoTitulo.textContent = "⚡ Erro na Análise";
-                iaResultado.textContent = `Erro: ${error.message}`;
-                mainContainer.classList.add('expanded');
-            } finally {
-                statusText.style.opacity = "0";
+            } catch (err) {
+                console.error("Erro ao carregar filmes:", err);
             }
         }
 
-        window.salvarNasCaixas = function() {
-            if (!ultimoResultadoAtual) {
-                alert("Nenhum resultado gerado para salvar.");
-                return;
-            }
-            const user = auth.currentUser;
-            if (user) {
-                push(ref(db, `historico_analises/${user.uid}`), {
-                    nome_arquivo: ultimoNomeArquivoAtual || "Documento Analisado",
-                    resultado: ultimoResultadoAtual,
-                    timestamp: serverTimestamp()
-                });
-                alert("Documento salvo com sucesso!");
-            }
-        }
-
-        window.mostrarHistoricoCompleto = function() {
-            renderizarDropdownResultados(globalHistorico, "Documentos Recentes Salvos");
-        }
-
-        window.filtrarHistoricoBusca = function(termo) {
+        window.pesquisarFilmes = async function(termo) {
             if (!termo || termo.trim() === "") {
-                mostrarHistoricoCompleto();
+                renderizarCatalogo(filmesCatalogo);
                 return;
             }
-
-            const termoLower = termo.toLowerCase();
-            const filtrados = globalHistorico.filter(item => 
-                item.nome_arquivo.toLowerCase().includes(termoLower) || 
-                item.resultado.toLowerCase().includes(termoLower)
-            );
-
-            renderizarDropdownResultados(filtrados, `Resultados para "${termo}"`);
+            try {
+                const response = await fetch(`/api/filmes/buscar?q=${encodeURIComponent(termo)}`);
+                const data = await response.json();
+                if (data.filmes) {
+                    renderizarCatalogo(data.filmes);
+                }
+            } catch (err) {
+                console.error("Erro na busca:", err);
+            }
         }
 
-        function renderizarDropdownResultados(lista, tituloHeader) {
-            const dropdown = document.getElementById('searchResultsDropdown');
-            if (lista.length === 0) {
-                dropdown.style.display = 'flex';
-                dropdown.innerHTML = `<div class="search-dropdown-header">${tituloHeader}</div><div style="padding: 10px; font-size:12px; color:#7f8c8d; text-align:center;">Nenhum documento encontrado.</div>`;
-                return;
-            }
-
-            let html = `<div class="search-dropdown-header">${tituloHeader}</div>`;
-            lista.forEach(item => {
-                const snippetResumo = item.resultado.replace(/\n/g, ' ').slice(0, 70) + '...';
-                html += `
-                    <div class="search-result-item" onclick='selecionarDocumentoBusca(${JSON.stringify(item.nome_arquivo).replace(/'/g, "&#39;")}, ${JSON.stringify(item.resultado).replace(/'/g, "&#39;")})'>
-                        <span>📄 ${item.nome_arquivo}</span>
-                        <span class="search-item-snippet">${snippetResumo}</span>
+        function renderizarCatalogo(filmes) {
+            const grid = document.getElementById('moviesGrid');
+            grid.innerHTML = "";
+            
+            filmes.forEach(filme => {
+                const selecionado = filmesSelecionados.some(f => f.id === filme.id);
+                const card = document.createElement('div');
+                card.className = `movie-card ${selecionado ? 'selected' : ''}`;
+                card.onclick = () => selecionarFilme(filme);
+                
+                const ano = filme.release_date ? filme.release_date.split('-')[0] : '';
+                
+                card.innerHTML = `
+                    <img src="${filme.poster_path}" alt="${filme.title}" onerror="this.src='https://placehold.co/500x750/1a1a1a/ffffff?text=Capa'">
+                    <div class="movie-card-info">
+                        <span class="movie-card-title" title="${filme.title}">${filme.title}</span>
+                        <span class="movie-card-year">${ano} ⭐ ${filme.vote_average.toFixed(1)}</span>
                     </div>
                 `;
+                grid.appendChild(card);
             });
-            dropdown.innerHTML = html;
-            dropdown.style.display = 'flex';
         }
 
-        document.addEventListener('click', function(e) {
-            const searchInput = document.getElementById('searchInput');
-            const dropdown = document.getElementById('searchResultsDropdown');
-            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.style.display = 'none';
+        function selecionarFilme(filme) {
+            if (filmesSelecionados.length >= 3) return;
+            if (filmesSelecionados.some(f => f.id === filme.id)) return;
+            
+            filmesSelecionados.push(filme);
+            atualizarTracker();
+            renderizarCatalogo(filmesCatalogo.length ? filmesCatalogo : []);
+        }
+
+        window.removerFilme = function(index) {
+            filmesSelecionados.splice(index, 1);
+            atualizarTracker();
+            renderizarCatalogo(filmesCatalogo);
+        }
+
+        window.limparSelecao = function() {
+            filmesSelecionados = [];
+            atualizarTracker();
+            renderizarCatalogo(filmesCatalogo);
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+
+        function atualizarTracker() {
+            const slots = document.getElementById('slotsContainer');
+            const countSpan = document.getElementById('countSelected');
+            const btnRecommend = document.getElementById('btnRecommend');
+            
+            countSpan.textContent = filmesSelecionados.length;
+            slots.innerHTML = "";
+            
+            for (let i = 0; i < 3; i++) {
+                if (filmesSelecionados[i]) {
+                    const f = filmesSelecionados[i];
+                    slots.innerHTML += `
+                        <div class="slot-box filled">
+                            <img src="${f.poster_path}" alt="${f.title}">
+                            <button class="slot-remove" onclick="removerFilme(${i})">✕</button>
+                        </div>
+                    `;
+                } else {
+                    slots.innerHTML += `
+                        <div class="slot-box">
+                            <span class="slot-empty-text">Filme ${i+1}</span>
+                        </div>
+                    `;
+                }
             }
-        });
-
-        window.selecionarDocumentoBusca = function(nome, resultado) {
-            abrirDocumentoSalvo(nome, resultado);
-            document.getElementById('searchInput').value = nome;
-            document.getElementById('searchResultsDropdown').style.display = 'none';
+            
+            btnRecommend.disabled = filmesSelecionados.length !== 3;
         }
 
-        window.abrirDocumentoSalvo = function(nome, resultado) {
-            ultimoNomeArquivoAtual = nome;
-            ultimoResultadoAtual = resultado;
-            resultadoTitulo.textContent = `⚡ Resultado (Salvo): ${nome}`;
-            iaResultado.textContent = resultado;
-            mainContainer.classList.add('expanded');
+        window.solicitarRecomendacoes = async function() {
+            if (filmesSelecionados.length !== 3) return;
+            
+            const statusMsg = document.getElementById('statusMsg');
+            const btnRecommend = document.getElementById('btnRecommend');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            statusMsg.style.opacity = "1";
+            btnRecommend.disabled = true;
+            
+            try {
+                const response = await fetch('/api/recomendar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filmes: filmesSelecionados })
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Erro ao gerar recomendações');
+                
+                document.getElementById('aiProfileAnalysis').textContent = data.analise_perfil;
+                
+                const recGrid = document.getElementById('recommendationsGrid');
+                recGrid.innerHTML = "";
+                
+                data.recomendacoes.forEach(rec => {
+                    recGrid.innerHTML += `
+                        <div class="rec-card">
+                            <img src="${rec.poster_path}" alt="${rec.titulo}" onerror="this.src='https://placehold.co/500x750/1a1a1a/ffffff?text=Capa'">
+                            <div class="rec-card-body">
+                                <span class="rec-title">${rec.titulo} (${rec.ano || 'N/A'})</span>
+                                <span class="rec-meta">${rec.genero || 'Cinema'}</span>
+                                <p class="rec-reason">${rec.motivo}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                resultsSection.style.display = 'flex';
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (err) {
+                alert(`Erro: ${err.message}`);
+            } finally {
+                statusMsg.style.opacity = "0";
+                btnRecommend.disabled = false;
+            }
         }
 
-        window.copiarTexto = function() {
-            navigator.clipboard.writeText(iaResultado.innerText);
-            alert("Resultado copiado para a área de transferência!");
-        }
-
-        window.compartilharWhatsApp = function() {
-            const texto = encodeURIComponent("Relatório de Análise do Documento:\n\n" + iaResultado.innerText);
-            window.open(`https://api.whatsapp.com/send?text=${texto}`, '_blank');
-        }
-
-        window.compartilharEmail = function() {
-            const assunto = encodeURIComponent("Análise de Documento - DocFlow IA");
-            const corpo = encodeURIComponent("Segue o relatório da análise:\n\n" + iaResultado.innerText);
-            window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
-        }
-
-        window.baixarTxt = function() {
-            const blob = new Blob([iaResultado.innerText], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'analise_documento.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        window.fecharResultados = function() {
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('mainContainer').scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>
